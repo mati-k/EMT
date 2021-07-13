@@ -1,0 +1,46 @@
+﻿<Window x:Class="EMT.Views.GfxDialogView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EMT.Views"
+        xmlns:converters="clr-namespace:EMT.Converters"
+        mc:Ignorable="d"
+        Title="Icon picker" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" VerticalScrollBarVisibility="Visible">
+            <ListView SelectedItem="{Binding SelectedIcon}" SelectionMode="Single" ItemsSource="{Binding GfxFiles}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <ListView.ItemContainerStyle>
+                    <Style>
+                        <Setter Property="FrameworkElement.Margin" Value="5"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <Image Source="{Binding Value, Converter={x:Static converters:DDSConverter.Default}}" Width="59" Height="63"/>
+                            <TextBlock Text="{Binding Key, Mode=OneWay}" Width="75" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </ScrollViewer>
+        <Button x:Name="Ok" Content="Ok" Grid.Row="1" Grid.Column="0" Margin="5"/>
+        <Button x:Name="Cancel" Content="Cancel" Grid.Row="1" Grid.Column="1" Margin="5" />
+    </Grid>
+</Window>

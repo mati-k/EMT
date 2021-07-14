@@ -20,6 +20,11 @@ namespace EMT.Models
             return true;
         }
 
+        public override NodeModel Copy()
+        {
+            return new ValueNodeModel() { Name = this.Name, Value = this.Value };
+        }
+
         public override void Write(ParadoxStreamWriter writer, ValueWrite valueWrite)
         {
             if (Name.Contains("name"))

@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using EMT.SharedData;
 
 namespace EMT.ViewModels
 {

@@ -35,6 +35,18 @@ namespace EMT.Models
             return false;
         }
 
+        public override NodeModel Copy()
+        {
+            GroupNodeModel copy = new GroupNodeModel() { Name = this.Name };
+            foreach (NodeModel node in Nodes)
+            {
+                copy.Nodes.Add(node.Copy());
+                copy.Nodes.Last().Parent = copy;
+            }
+
+            return copy;
+        }
+
         public override void Write(ParadoxStreamWriter writer, ValueWrite valueWrite)
         {
             if (!SinglePath())

@@ -1,4 +1,5 @@
 ﻿using Caliburn.Micro;
+using EMT.SharedData;
 using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace EMT.Models
         private bool _generic = false;
         private bool _ai = true;
         private bool _countryShield = true;
-        private NodeModel _potential = new GroupNodeModel() { Name = "potential" };
+        private NodeModel _potential = DefaultPotential.Instance.Potential.Copy();
         private bool _isActive = true;
 
         public string Name

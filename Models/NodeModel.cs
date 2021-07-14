@@ -35,6 +35,7 @@ namespace EMT.Models
         public abstract void TokenCallback(ParadoxParser parser, string token);
         public abstract void Write(ParadoxStreamWriter writer, ValueWrite valueWrite);
         public abstract bool SinglePath();
+        public abstract NodeModel Copy();
         public virtual void Write(ParadoxStreamWriter writer)
         {
             Write(writer, ValueWrite.LeadingTabs | ValueWrite.NewLine);

@@ -68,6 +68,26 @@ namespace EMT.ViewModels
             return "";
         }
 
+        public void AddValue(GroupNodeModel node)
+        {
+            node.Nodes.Add(new ValueNodeModel() { Parent = node }); ;
+        }
+
+        public void AddGroup(GroupNodeModel node)
+        {
+            node.Nodes.Add(new GroupNodeModel() { Parent = node });
+        }
+
+        public void RemoveValue(ValueNodeModel node)
+        {
+            node.Parent.Nodes.Remove(node);
+        }
+
+        public void RemoveGroup(GroupNodeModel node)
+        {
+            node.Parent.Nodes.Remove(node);
+        }
+
         public bool CanContinue(string filesModel_MissionFile, string filesModel_LocalisationFile)
         {
             return !String.IsNullOrWhiteSpace(filesModel_MissionFile) && !String.IsNullOrWhiteSpace(filesModel_LocalisationFile);

@@ -6,6 +6,8 @@
              xmlns:local="clr-namespace:EMT.Views"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:cal="http://www.caliburnproject.org"
+             xmlns:models="clr-namespace:EMT.Models"
+             xmlns:shared="clr-namespace:EMT.SharedData"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -13,6 +15,7 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
@@ -51,6 +54,47 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+        <Label Content="Default Potential" Grid.Row="2" Grid.Column="3" DataContext="{Binding Source={x:Static shared:DefaultPotential.Instance}, Path=Potential}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
+            <Label.ContextMenu>
+                <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
+                    <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
+                </ContextMenu>
+            </Label.ContextMenu>
+        </Label>
+        <TreeView Grid.Row="3" Grid.Column="3" ItemsSource="{Binding Source={x:Static shared:DefaultPotential.Instance}, Path=Potential.Nodes}">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="True"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.Resources>
+                <HierarchicalDataTemplate ItemsSource="{Binding Nodes}" DataType="{x:Type models:GroupNodeModel}">
+                    <TextBox Text="{Binding Name}" MinWidth="50" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
+                        <TextBox.ContextMenu>
+                            <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
+                                <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
+                                <MenuItem Header="Remove" cal:Message.Attach="RemoveGroup($dataContext)"/>
+                            </ContextMenu>
+                        </TextBox.ContextMenu>
+                    </TextBox>
+                </HierarchicalDataTemplate>
+                <DataTemplate DataType="{x:Type models:ValueNodeModel}">
+                    <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
+                        <TextBox Text="{Binding Name}" MinWidth="50"/>
+                        <TextBox Text="{Binding Value}" MinWidth="50" Margin="20,0,0,0"/>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Remove" cal:Message.Attach="RemoveValue($dataContext)"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+
         <Button x:Name="Continue" Grid.Column="0" Grid.Row="4" Margin="0,10" Content="Continue" />
     </Grid>
 </UserControl>

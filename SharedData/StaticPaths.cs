@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EMT.Models
+namespace EMT.SharedData
 {
     public static class StaticPaths
     {

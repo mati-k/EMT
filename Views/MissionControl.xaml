@@ -5,11 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EMT.Views"
              xmlns:converters="clr-namespace:EMT.Converters" xmlns:models="clr-namespace:EMT.Models" d:DataContext="{d:DesignInstance Type=models:MissionModel}"
+             xmlns:shared="clr-namespace:EMT.SharedData"
              mc:Ignorable="d" 
              d:DesignHeight="122" d:DesignWidth="104">
     <Grid>
         <Image Source="{Binding IconPath, Converter={x:Static converters:DDSConverter.Default}}" HorizontalAlignment="Left" Margin="22,20,0,0" Width="59" Height="63" VerticalAlignment="Top"/>
-        <Image Source="{Binding Source={x:Static models:StaticPaths.MissionFramePath}, Converter={x:Static converters:DDSConverter.Default}}" HorizontalAlignment="Left" Stretch="None" Margin="0,0,0,0" VerticalAlignment="Top"/>
+        <Image Source="{Binding Source={x:Static shared:StaticPaths.MissionFramePath}, Converter={x:Static converters:DDSConverter.Default}}" HorizontalAlignment="Left" Stretch="None" Margin="0,0,0,0" VerticalAlignment="Top"/>
         <local:BindableRichTextBox Document="{Binding TitleOrName, Converter={x:Static converters:RichTextBoxConverter.Default}, Mode=OneWay}" HorizontalAlignment="Center" IsReadOnly="True" Focusable="False" IsHitTestVisible="False" Margin="8,84,0,0" VerticalAlignment="Top" Foreground="White" Width="96" FontWeight="Bold" Background="Transparent" BorderThickness="0"/>
     </Grid>
 </UserControl>

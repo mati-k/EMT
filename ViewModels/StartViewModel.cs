@@ -1,5 +1,7 @@
 ﻿using Caliburn.Micro;
+using EMT.Handlers;
 using EMT.Models;
+using GongSolutions.Wpf.DragDrop;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
@@ -23,6 +25,8 @@ namespace EMT.ViewModels
                 NotifyOfPropertyChange(() => FilesModel);
             }
         }
+
+        public IDropTarget DropHandler { get; } = new DropTargetHandler();
 
         public StartViewModel(IEventAggregator eventAggregator)
         {

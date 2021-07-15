@@ -22,6 +22,16 @@ namespace EMT.Models
                 NotifyOfPropertyChange(() => Parent);
             }
         }
+        public GroupNodeModel Root
+        {
+            get
+            {
+                if (_parent == null)
+                    return (this as GroupNodeModel);
+
+                return Parent.Root;
+            }
+        }
         public string Name
         {
             get { return _name; }

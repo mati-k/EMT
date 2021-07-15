@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EMT.SharedData;
+using GongSolutions.Wpf.DragDrop;
+using EMT.Handlers;
 
 namespace EMT.ViewModels
 {
@@ -28,6 +30,7 @@ namespace EMT.ViewModels
         }
 
         public MissionFileModel MissionFile { get; set; }
+        public IDropTarget DropHandler { get; } = new DropTargetHandler();
 
         public MissionDetailsViewModel(IEventAggregator eventAggregator, IWindowManager windowManager)
         {

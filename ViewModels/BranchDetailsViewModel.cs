@@ -1,5 +1,7 @@
 ﻿using Caliburn.Micro;
+using EMT.Handlers;
 using EMT.Models;
+using GongSolutions.Wpf.DragDrop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +26,7 @@ namespace EMT.ViewModels
             }
         }
         public MissionFileModel MissionFile { get; set; }
+        public IDropTarget DropHandler { get; } = new DropTargetHandler();
 
         public void AddValue(GroupNodeModel node)
         {

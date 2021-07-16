@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Caliburn.Micro;
 
 namespace EMT.ViewModels
@@ -11,6 +12,14 @@ namespace EMT.ViewModels
     {
         public Dictionary<string, string> GfxFiles { get; set; }
         public KeyValuePair<string, string> SelectedIcon { get; set; }
+
+        public void DoubleClick(MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
+            {
+                Ok(SelectedIcon);
+            }
+        }
 
         public bool CanOk(KeyValuePair<string, string> selectedIcon)
         {

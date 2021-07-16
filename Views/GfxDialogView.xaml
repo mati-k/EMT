@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EMT.Views"
         xmlns:converters="clr-namespace:EMT.Converters"
+        xmlns:cal="http://caliburnmicro.com"
         mc:Ignorable="d"
         Title="Icon picker" Height="450" Width="800">
     <Grid>
@@ -32,7 +33,7 @@
                 </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel>
+                        <StackPanel cal:Message.Attach="[Event MouseDown] = [Action DoubleClick($eventArgs)]">
                             <Image Source="{Binding Value, Converter={x:Static converters:DDSConverter.Default}}" Width="59" Height="63"/>
                             <TextBlock Text="{Binding Key, Mode=OneWay}" Width="75" TextWrapping="Wrap"/>
                         </StackPanel>

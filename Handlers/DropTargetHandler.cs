@@ -18,7 +18,7 @@ namespace EMT.Handlers
             NodeModel source = dropInfo.Data as NodeModel;
             NodeModel target = dropInfo.TargetItem as NodeModel;
 
-            if (source != null && target != null && source.Root == target.Root)
+            if (source != null && target != null && !IsSelfOrChild(source, target) && source.Root == target.Root)
             {
                 dropInfo.Effects = System.Windows.DragDropEffects.Move;
                 var isTreeViewItem = dropInfo.InsertPosition.HasFlag(RelativeInsertPosition.TargetItemCenter) && dropInfo.VisualTargetItem is TreeViewItem;
@@ -35,6 +35,9 @@ namespace EMT.Handlers
             int index = source.Parent.Nodes.IndexOf(source);
 
             var desintation = dropInfo.TargetCollection as BindableCollection<NodeModel>;
+
+            if (target.Parent == source)
+                return;
 
             if (desintation != null)
             {
@@ -91,6 +94,17 @@ namespace EMT.Handlers
             }
 
             return insertIndex;
+        }
+
+        private bool IsSelfOrChild(NodeModel source, NodeModel target)
+        {
+            if (source == target)
+                return true;
+
+            if (target.Parent == null)
+                return false;
+
+            return IsSelfOrChild(source, target.Parent);
         }
     }
 }

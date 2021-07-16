@@ -80,7 +80,7 @@
 
                 <Label Content="Description"/>
                 <TextBox Text="{Binding Mission.Description}" TextWrapping="Wrap" VerticalAlignment="Stretch"/>
-                <local:BindableRichTextBox Document="{Binding Mission.Description, Converter={x:Static converters:RichTextBoxConverter.Default}, Mode=OneWay}" IsReadOnly="True" Focusable="False" IsHitTestVisible="False" FontWeight="Bold" Background="#FF304976"/>
+                <local:BindableRichTextBox BindableDocument="{Binding Mission.Description, Converter={x:Static converters:RichTextBoxConverter.Default}, Mode=OneWay}" IsReadOnly="True" Focusable="False" IsHitTestVisible="False" FontWeight="Bold" Background="#FF304976"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

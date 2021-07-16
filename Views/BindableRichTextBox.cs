@@ -11,24 +11,39 @@ namespace EMT.Views
 {
     public class BindableRichTextBox : RichTextBox
     {
-        public static readonly DependencyProperty DocumentProperty = DependencyProperty.Register("Document", typeof(FlowDocument), typeof(BindableRichTextBox), new FrameworkPropertyMetadata(null, new PropertyChangedCallback(OnDocumentChanged)));
+        public static readonly DependencyProperty BindableDocumentProperty = DependencyProperty.Register("BindableDocument", typeof(FlowDocument), typeof(BindableRichTextBox), new FrameworkPropertyMetadata(null, new PropertyChangedCallback(OnBindableDocumentChanged)));
+        public static readonly DependencyProperty TextAlignProperty = DependencyProperty.Register("TextAlign", typeof(TextAlignment), typeof(BindableRichTextBox), new FrameworkPropertyMetadata(TextAlignment.Justify, new PropertyChangedCallback(OnTextAlignmentChanged)));
 
-        public new FlowDocument Document
+        public FlowDocument BindableDocument
         {
             get
             {
-                return (FlowDocument)this.GetValue(DocumentProperty);
+                return (FlowDocument)this.GetValue(BindableDocumentProperty);
             }
             set
             {
-                this.SetValue(DocumentProperty, value);
+                this.SetValue(BindableDocumentProperty, value);
             }
         }
 
-        public static void OnDocumentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+        public TextAlignment TextAlign
         {
-            RichTextBox rtb = (RichTextBox)obj;
+            get { return (TextAlignment)this.GetValue(TextAlignProperty); }
+            set { this.SetValue(TextAlignProperty, value); }
+        }
+
+        public static void OnBindableDocumentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+        {
+            BindableRichTextBox rtb = (BindableRichTextBox)obj;
             rtb.Document = (FlowDocument)args.NewValue;
+            rtb.Document.TextAlignment = rtb.TextAlign;
+        }
+
+        public static void OnTextAlignmentChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+        {
+            BindableRichTextBox rtb = (BindableRichTextBox)obj;
+            if (rtb.Document != null)
+                rtb.Document.TextAlignment = (TextAlignment)args.NewValue;
         }
     }
 }

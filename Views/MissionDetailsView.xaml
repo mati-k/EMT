@@ -32,7 +32,14 @@
                 </StackPanel>
 
                 <Label Content="Required missions"/>
-                <DataGrid ItemsSource="{Binding Mission.RequiredMissions}" AutoGenerateColumns="False" CanUserAddRows="True" IsReadOnly="False">
+                <DataGrid ItemsSource="{Binding Mission.RequiredMissions}" AutoGenerateColumns="False" CanUserAddRows="True" IsReadOnly="False" ScrollViewer.CanContentScroll="False">
+                    <DataGrid.Template>
+                        <ControlTemplate>
+                            <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                                <ItemsPresenter/>
+                            </Border>
+                        </ControlTemplate>
+                    </DataGrid.Template>
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="auto" Header="Required missions" Binding="{Binding Path=Name}" IsReadOnly="False"/>
                     </DataGrid.Columns>
@@ -46,36 +53,7 @@
                         </ContextMenu>
                     </Label.ContextMenu>
                 </Label>
-                <TreeView ItemsSource="{Binding Mission.ProvincesToHighlight.Nodes}"  dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" >
-                    <TreeView.ItemContainerStyle>
-                        <Style TargetType="{x:Type TreeViewItem}">
-                            <Setter Property="IsExpanded" Value="True"/>
-                        </Style>
-                    </TreeView.ItemContainerStyle>
-                    <TreeView.Resources>
-                        <HierarchicalDataTemplate ItemsSource="{Binding Nodes}" DataType="{x:Type models:GroupNodeModel}">
-                            <TextBox Text="{Binding Name}" MinWidth="50" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
-                                <TextBox.ContextMenu>
-                                    <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                        <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
-                                        <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
-                                        <MenuItem Header="Remove" cal:Message.Attach="RemoveGroup($dataContext)"/>
-                                    </ContextMenu>
-                                </TextBox.ContextMenu>
-                            </TextBox>
-                        </HierarchicalDataTemplate>
-                        <DataTemplate DataType="{x:Type models:ValueNodeModel}">
-                            <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
-                                <TextBox Text="{Binding Name}" MinWidth="50"/>
-                                <TextBox Text="{Binding Value}" MinWidth="50" Margin="20,0,0,0"/>
-                                <StackPanel.ContextMenu>
-                                    <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                        <MenuItem Header="Remove" cal:Message.Attach="RemoveValue($dataContext)"/>
-                                    </ContextMenu>
-                                </StackPanel.ContextMenu>
-                            </StackPanel>
-                        </DataTemplate>
-                    </TreeView.Resources>
+                <TreeView ItemsSource="{Binding Mission.ProvincesToHighlight.Nodes}"  dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
 
                 <Label Content="Trigger" DataContext="{Binding Path=Mission.Trigger}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
@@ -86,36 +64,7 @@
                         </ContextMenu>
                     </Label.ContextMenu>
                 </Label>
-                <TreeView ItemsSource="{Binding Mission.Trigger.Nodes}"  dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" >
-                    <TreeView.ItemContainerStyle>
-                        <Style TargetType="{x:Type TreeViewItem}">
-                            <Setter Property="IsExpanded" Value="True"/>
-                        </Style>
-                    </TreeView.ItemContainerStyle>
-                    <TreeView.Resources>
-                        <HierarchicalDataTemplate ItemsSource="{Binding Nodes}" DataType="{x:Type models:GroupNodeModel}">
-                            <TextBox Text="{Binding Name}" MinWidth="50" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
-                                <TextBox.ContextMenu>
-                                    <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                        <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
-                                        <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
-                                        <MenuItem Header="Remove" cal:Message.Attach="RemoveGroup($dataContext)"/>
-                                    </ContextMenu>
-                                </TextBox.ContextMenu>
-                            </TextBox>
-                        </HierarchicalDataTemplate>
-                        <DataTemplate DataType="{x:Type models:ValueNodeModel}">
-                            <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
-                                <TextBox Text="{Binding Name}" MinWidth="50"/>
-                                <TextBox Text="{Binding Value}" MinWidth="50" Margin="20,0,0,0"/>
-                                <StackPanel.ContextMenu>
-                                    <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                        <MenuItem Header="Remove" cal:Message.Attach="RemoveValue($dataContext)"/>
-                                    </ContextMenu>
-                                </StackPanel.ContextMenu>
-                            </StackPanel>
-                        </DataTemplate>
-                    </TreeView.Resources>
+                <TreeView ItemsSource="{Binding Mission.Trigger.Nodes}"  dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
 
                 <Label Content="Effect" DataContext="{Binding Path=Mission.Effect}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
@@ -126,36 +75,7 @@
                         </ContextMenu>
                     </Label.ContextMenu>
                 </Label>
-                <TreeView ItemsSource="{Binding Mission.Effect.Nodes}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" >
-                    <TreeView.ItemContainerStyle>
-                        <Style TargetType="{x:Type TreeViewItem}">
-                            <Setter Property="IsExpanded" Value="True"/>
-                        </Style>
-                    </TreeView.ItemContainerStyle>
-                    <TreeView.Resources>
-                        <HierarchicalDataTemplate ItemsSource="{Binding Nodes}" DataType="{x:Type models:GroupNodeModel}">
-                            <TextBox Text="{Binding Name}" MinWidth="50" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
-                                <TextBox.ContextMenu>
-                                    <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                        <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
-                                        <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
-                                        <MenuItem Header="Remove" cal:Message.Attach="RemoveGroup($dataContext)"/>
-                                    </ContextMenu>
-                                </TextBox.ContextMenu>
-                            </TextBox>
-                        </HierarchicalDataTemplate>
-                        <DataTemplate DataType="{x:Type models:ValueNodeModel}">
-                            <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
-                                <TextBox Text="{Binding Name}" MinWidth="50"/>
-                                <TextBox Text="{Binding Value}" MinWidth="50" Margin="20,0,0,0"/>
-                                <StackPanel.ContextMenu>
-                                    <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                        <MenuItem Header="Remove" cal:Message.Attach="RemoveValue($dataContext)"/>
-                                    </ContextMenu>
-                                </StackPanel.ContextMenu>
-                            </StackPanel>
-                        </DataTemplate>
-                    </TreeView.Resources>
+                <TreeView ItemsSource="{Binding Mission.Effect.Nodes}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
 
                 <Label Content="Description"/>

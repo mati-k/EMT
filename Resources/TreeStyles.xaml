@@ -1,0 +1,48 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:EMT.Resources"
+                    xmlns:models="clr-namespace:EMT.Models"
+                    xmlns:cal="http://caliburnmicro.com">
+    <Style TargetType="TreeView" x:Key="ScrollableTreeView">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TreeView">
+                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                        <ItemsPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="True"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <HierarchicalDataTemplate ItemsSource="{Binding Nodes}" DataType="{x:Type models:GroupNodeModel}">
+        <TextBox Text="{Binding Name}" MinWidth="50" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
+            <TextBox.ContextMenu>
+                <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
+                    <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
+                    <MenuItem Header="Remove" cal:Message.Attach="RemoveGroup($dataContext)"/>
+                </ContextMenu>
+            </TextBox.ContextMenu>
+        </TextBox>
+    </HierarchicalDataTemplate>
+    
+    <DataTemplate DataType="{x:Type models:ValueNodeModel}">
+        <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
+            <TextBox Text="{Binding Name}" MinWidth="50"/>
+            <TextBox Text="{Binding Value}" MinWidth="50" Margin="20,0,0,0"/>
+            <StackPanel.ContextMenu>
+                <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="Remove" cal:Message.Attach="RemoveValue($dataContext)"/>
+                </ContextMenu>
+            </StackPanel.ContextMenu>
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

@@ -19,11 +19,10 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" VerticalScrollBarVisibility="Visible">
-            <ListView SelectedItem="{Binding SelectedIcon}" SelectionMode="Single" ItemsSource="{Binding GfxFiles}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListView Grid.ColumnSpan="3" SelectedItem="{Binding SelectedIcon}" SelectionMode="Single" ItemsSource="{Binding GfxFiles}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
                 <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel />
+                        <WrapPanel Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
                 </ListView.ItemsPanel>
                 <ListView.ItemContainerStyle>
@@ -40,7 +39,6 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-        </ScrollViewer>
         <Button x:Name="Ok" Content="Ok" Grid.Row="1" Grid.Column="0" Margin="5"/>
         <Button x:Name="Cancel" Content="Cancel" Grid.Row="1" Grid.Column="1" Margin="5" />
     </Grid>

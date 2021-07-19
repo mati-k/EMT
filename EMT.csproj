@@ -66,6 +66,9 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoCompleteTextBox, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoCompleteTextBox.1.2.0\lib\net472\AutoCompleteTextBox.dll</HintPath>
+    </Reference>
     <Reference Include="Caliburn.Micro.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=8e5891231f2ed21f, processorArchitecture=MSIL">
       <HintPath>..\packages\Caliburn.Micro.Core.4.0.173\lib\netstandard2.0\Caliburn.Micro.Core.dll</HintPath>
     </Reference>
@@ -134,6 +137,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\DDSConverter.cs" />
+    <Compile Include="Converters\ParadoxConfigParser.cs" />
     <Compile Include="Converters\ParadoxSaverCustom.cs" />
     <Compile Include="Converters\RichTextBoxConverter.cs" />
     <Compile Include="Handlers\DropTargetHandler.cs" />
@@ -141,6 +145,18 @@
     <Compile Include="Models\FontColors.cs" />
     <Compile Include="Models\GfxFileModel.cs" />
     <Compile Include="Models\GfxModel.cs" />
+    <Compile Include="Providers\SuggestionProvider.cs" />
+    <Compile Include="Rules\Cardinality.cs" />
+    <Compile Include="Rules\ConfigFile.cs" />
+    <Compile Include="Rules\GroupRule.cs" />
+    <Compile Include="Rules\IRuleMeta.cs" />
+    <Compile Include="Rules\PushScope.cs" />
+    <Compile Include="Rules\ReadMeta.cs" />
+    <Compile Include="Rules\ReplaceScope.cs" />
+    <Compile Include="Rules\RuleBase.cs" />
+    <Compile Include="Rules\Scope.cs" />
+    <Compile Include="Rules\Severity.cs" />
+    <Compile Include="Rules\ValueRule.cs" />
     <Compile Include="SharedData\GfxStorage.cs" />
     <Compile Include="Models\GroupNodeModel.cs" />
     <Compile Include="Models\Localisation.cs" />
@@ -243,6 +259,114 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="cwtools-eu4-config\.editorconfig">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\.gitlab-ci.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\abilities.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\00_small_types_consolidated.cwt" />
+    <None Include="cwtools-eu4-config\common\advisortypes.cwt" />
+    <None Include="cwtools-eu4-config\common\ages.cwt" />
+    <None Include="cwtools-eu4-config\common\ai_personalities.cwt" />
+    <None Include="cwtools-eu4-config\common\ancestor_personalities.cwt" />
+    <None Include="cwtools-eu4-config\common\buildings.cwt" />
+    <None Include="cwtools-eu4-config\common\casus_belli_and_war_goals.cwt" />
+    <None Include="cwtools-eu4-config\common\colonial_region.cwt" />
+    <None Include="cwtools-eu4-config\common\countries_consolidated.cwt" />
+    <None Include="cwtools-eu4-config\common\cultures.cwt" />
+    <None Include="cwtools-eu4-config\common\diplomatic_actions.cwt" />
+    <None Include="cwtools-eu4-config\common\diplomatic_actions_new.cwt" />
+    <None Include="cwtools-eu4-config\common\disasters.cwt" />
+    <None Include="cwtools-eu4-config\common\estates.cwt" />
+    <None Include="cwtools-eu4-config\common\federation_advancements.cwt" />
+    <None Include="cwtools-eu4-config\common\governments_and_reforms.cwt" />
+    <None Include="cwtools-eu4-config\common\greatprojects.cwt" />
+    <None Include="cwtools-eu4-config\common\ideas_and_native_advancements.cwt" />
+    <None Include="cwtools-eu4-config\common\imperial_incident.cwt" />
+    <None Include="cwtools-eu4-config\common\imperial_reforms.cwt" />
+    <None Include="cwtools-eu4-config\common\incidents.cwt" />
+    <None Include="cwtools-eu4-config\common\institutions.cwt" />
+    <None Include="cwtools-eu4-config\common\links.cwt" />
+    <None Include="cwtools-eu4-config\common\modifiers_consolidated.cwt" />
+    <None Include="cwtools-eu4-config\common\on_actions.cwt" />
+    <None Include="cwtools-eu4-config\common\opinion_modifiers.cwt" />
+    <None Include="cwtools-eu4-config\common\parliaments.cwt" />
+    <None Include="cwtools-eu4-config\common\peace_treaties.cwt" />
+    <None Include="cwtools-eu4-config\common\personalities.cwt" />
+    <None Include="cwtools-eu4-config\common\rebel_types.cwt" />
+    <None Include="cwtools-eu4-config\common\religions_and_related.cwt" />
+    <None Include="cwtools-eu4-config\common\scripted_functions.cwt" />
+    <None Include="cwtools-eu4-config\common\scripted_triggers_and_effects.cwt" />
+    <None Include="cwtools-eu4-config\common\subject_types.cwt" />
+    <None Include="cwtools-eu4-config\common\technologies.cwt" />
+    <None Include="cwtools-eu4-config\common\technology_groups.cwt" />
+    <None Include="cwtools-eu4-config\common\trade_consolidated.cwt" />
+    <None Include="cwtools-eu4-config\common\unit_types.cwt" />
+    <None Include="cwtools-eu4-config\customizable_localisation\custom_locs.cwt" />
+    <None Include="cwtools-eu4-config\decisions\decisions.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\dlc_event_pics.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\dlc_metadata\dlc_metadata.cwt" />
+    <None Include="cwtools-eu4-config\effects.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\enums.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\events\events.cwt" />
+    <None Include="cwtools-eu4-config\folders.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\gfx\sprite_packs.cwt" />
+    <None Include="cwtools-eu4-config\gfx\sprite_packsorder.cwt" />
+    <None Include="cwtools-eu4-config\history\history_consolidated.cwt" />
+    <None Include="cwtools-eu4-config\interface\sprites.cwt" />
+    <None Include="cwtools-eu4-config\LICENSE">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\localisation.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\map\ambient_objects_and_terrain.cwt" />
+    <None Include="cwtools-eu4-config\map\areas_regions_etc.cwt" />
+    <None Include="cwtools-eu4-config\map\default_map.cwt" />
+    <None Include="cwtools-eu4-config\map\tiles.cwt" />
+    <None Include="cwtools-eu4-config\missions\missions.cwt" />
+    <None Include="cwtools-eu4-config\modifiers.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\modifier_rule.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\new\1_28_rules.cwt" />
+    <None Include="cwtools-eu4-config\new\1_29_rules.cwt" />
+    <None Include="cwtools-eu4-config\new\1_30_new_features.cwt" />
+    <None Include="cwtools-eu4-config\new\1_30_rules.cwt" />
+    <None Include="cwtools-eu4-config\on_actions.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\scopes.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\scope_links.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\triggers.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\variable_enums.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="EMT_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -266,6 +390,19 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="cwtools-eu4-config\F# attempt at locs.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="cwtools-eu4-config\needed things.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="cwtools-eu4-config\new\useful errors.txt" />
+    <Resource Include="cwtools-eu4-config\on actions wip.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="cwtools-eu4-config\todo stuff.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Content Include="Icons\arrow_end.dds">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

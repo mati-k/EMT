@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EMT.SharedData;
 using GongSolutions.Wpf.DragDrop;
 using EMT.Handlers;
+using AutoCompleteTextBox.Editors;
 
 namespace EMT.ViewModels
 {

@@ -155,6 +155,7 @@
     <Compile Include="Rules\ReplaceScope.cs" />
     <Compile Include="Rules\RuleBase.cs" />
     <Compile Include="Rules\Scope.cs" />
+    <Compile Include="Rules\ScopeMeta.cs" />
     <Compile Include="Rules\Severity.cs" />
     <Compile Include="Rules\ValueRule.cs" />
     <Compile Include="SharedData\GfxStorage.cs" />

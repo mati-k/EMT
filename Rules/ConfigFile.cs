@@ -10,7 +10,6 @@ namespace EMT.Rules
 {
     public class ConfigFile : IParadoxRead
     {
-        public List<IRuleMeta> RulesStack { get; set; } = new List<IRuleMeta>();
         public List<RuleBase> Rules { get; set; } = new List<RuleBase>();
 
         public void TokenCallback(ParadoxParser parser, string token)

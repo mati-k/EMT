@@ -16,8 +16,10 @@ namespace EMT.Rules
         {
             if (parser.NextIsBracketed())
             {
-                if (token == "option_token")
+                if (token.Equals("option_token"))
                     parser.Parse(new ReadMeta());
+                else if (Name.Equals("scopes"))
+                    Rules.Add(parser.Parse(new Scope() { Name = token }));
                 else
                     Rules.Add(parser.Parse(new GroupRule() { Name = token }));
             }

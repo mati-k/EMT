@@ -15,10 +15,10 @@ namespace EMT.Rules
 
         public RuleBase()
         {
-            if (ParadoxConfigParser.RuleStack.Count > 0)
+            if (ParadoxConfigParser.Instance.RuleStack.Count > 0)
             {
-                Meta = new List<IRuleMeta>(ParadoxConfigParser.RuleStack);
-                ParadoxConfigParser.RuleStack.Clear();
+                Meta = new List<IRuleMeta>(ParadoxConfigParser.Instance.RuleStack);
+                ParadoxConfigParser.Instance.RuleStack.Clear();
             }
         }
 

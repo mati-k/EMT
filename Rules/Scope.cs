@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 
 namespace EMT.Rules
 {
-    public class Scope : IRuleMeta, IParadoxRead
+    public class Scope : RuleBase
     {
-        public IList<string> Scopes = new List<string>();
+        public IList<string> Aliases = new List<string>();
+        public IList<string> ParentScopes = new List<string>();
 
-        public void TokenCallback(ParadoxParser parser, string token)
+        public override void TokenCallback(ParadoxParser parser, string token)
         {
+            if (token.Equals("aliases"))
+                Aliases = parser.ReadStringList();
+            else if (token.Equals("is_subscope_of"))
+                ParentScopes = parser.ReadStringList();
         }
     }
 }

@@ -22,8 +22,9 @@ namespace EMT.ViewModels
         private StartViewModel _startViewModel;
         private MissionViewModel _missionViewModel;
         private MissionFileModel _missionFile;
-
         private Dictionary<string, string> _unconnectedLocalisation = new Dictionary<string, string>();
+
+        private string configPath = "cwtools-eu4-config";
 
         public MissionFileModel MissionFile
         {
@@ -139,6 +140,8 @@ namespace EMT.ViewModels
                 }
             }
 
+            LoadConfig();
+
             Dictionary<string, string> gfxFiles = new Dictionary<string, string>();
             foreach (string gfxFile in message.GFXFiles)
             {
@@ -165,6 +168,20 @@ namespace EMT.ViewModels
             _eventAggregator.PublishOnUIThreadAsync(missionFileModel);
 
             return ActivateItemAsync(_missionViewModel, CancellationToken.None);
+        }
+
+        private void LoadConfig()
+        {
+            ParadoxConfigParser.Instance.ReadConfig();
+            
+            using (FileStream fileStream = new FileStream(Path.Combine(configPath, "effects.cwt"), FileMode.Open))
+            {
+                //configFile = ParadoxParser.Parse(fileStream, new ConfigFileModel());
+            }
+            //List<string> stringList = configFile.Nodes.Where(node => node is ValueNodeModel).Select(node => node.Name)
+            //    .Select(value => value.Replace("alias[effect:", "").Replace("]", "")).ToList();
+
+            //Providers.SuggestionProvider.Instance.Effects = new BindableCollection<string>(stringList);
         }
     }
 }

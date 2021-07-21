@@ -150,6 +150,7 @@
     <Compile Include="Rules\ConfigFile.cs" />
     <Compile Include="Rules\GroupRule.cs" />
     <Compile Include="Rules\IRuleMeta.cs" />
+    <Compile Include="Rules\ParadoxEnum.cs" />
     <Compile Include="Rules\PushScope.cs" />
     <Compile Include="Rules\ReadMeta.cs" />
     <Compile Include="Rules\ReplaceScope.cs" />

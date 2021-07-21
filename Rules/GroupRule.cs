@@ -20,6 +20,8 @@ namespace EMT.Rules
                     parser.Parse(new ReadMeta());
                 else if (Name.Equals("scopes"))
                     Rules.Add(parser.Parse(new Scope() { Name = token }));
+                else if (Name.Equals("enums"))
+                    Rules.Add(new ParadoxEnum() { Name = token, Values = parser.ReadStringList() });
                 else
                     Rules.Add(parser.Parse(new GroupRule() { Name = token }));
             }

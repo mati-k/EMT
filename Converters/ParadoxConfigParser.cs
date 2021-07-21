@@ -17,6 +17,7 @@ namespace EMT.Converters
         public IList<IRuleMeta> RuleStack = new List<IRuleMeta>();
         
         public List<Scope> Scopes { get; set; } = new List<Scope>();
+        public Dictionary<string, IList<string>> Enums { get; set; } = new Dictionary<string, IList<string>>();
         public List<RuleBase> TriggerRules { get; set; } = new List<RuleBase>();
         public List<RuleBase> EffectRules { get; set; } = new List<RuleBase>();
 
@@ -34,8 +35,13 @@ namespace EMT.Converters
         public void ReadConfig()
         {
             Scopes = (Read(Path.Combine(configPath, "scopes.cwt")).Rules.First() as GroupRule).Rules.Select(rule => rule as Scope).ToList();
+            Enums = (Read(Path.Combine(configPath, "enums.cwt")).Rules.First() as GroupRule).Rules.Select(rule => rule as ParadoxEnum)
+                .ToDictionary(enumRule => enumRule.Name.Replace("enum[", "").Replace("]", ""), enumRule => enumRule.Values);
+
+
             Read(Path.Combine(configPath, "triggers.cwt")).Rules.ForEach(ParseRule);
             Read(Path.Combine(configPath, "effects.cwt")).Rules.ForEach(ParseRule);
+            Read(Path.Combine(configPath, "scope_links.cwt")).Rules.ForEach(ParseRule);
         }
 
         public ConfigFile Read(string file)

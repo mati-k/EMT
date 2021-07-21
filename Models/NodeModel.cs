@@ -1,5 +1,7 @@
 ﻿using AutoCompleteTextBox.Editors;
 using Caliburn.Micro;
+using EMT.Converters;
+using EMT.Rules;
 using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;
@@ -11,11 +13,6 @@ namespace EMT.Models
 {
     public abstract class NodeModel : PropertyChangedBase, IParadoxRead, IParadoxWrite
     {
-        public void Select()
-        {
-            Providers.SuggestionProvider.Instance.SelectNode(this);
-        }
-
         private GroupNodeModel _parent;
         private string _name;
 
@@ -38,7 +35,7 @@ namespace EMT.Models
                 return Parent.Root;
             }
         }
-        public string Name
+        public virtual string Name
         {
             get { return _name; }
             set
@@ -55,6 +52,11 @@ namespace EMT.Models
         public virtual void Write(ParadoxStreamWriter writer)
         {
             Write(writer, ValueWrite.LeadingTabs | ValueWrite.NewLine);
+        }
+
+        public void Select()
+        {
+            Providers.SuggestionProvider.Instance.SelectNode(this);
         }
     }
 }

@@ -43,12 +43,12 @@
     <DataTemplate DataType="{x:Type models:ValueNodeModel}">
         <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
             <acb:AutoCompleteTextBox Text="" Provider="{x:Static provider:SuggestionProvider.Instance}" MinWidth="150" cal:Message.Attach="[Event GotFocus] = [Action Select()]"
-                                                                        SelectedItem="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}">
+                                                                       SelectedItem="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}">
                 <acb:AutoCompleteTextBox.LoadingContent>
                     <TextBlock Text="Loading..." Margin="5" FontSize="14" />
                 </acb:AutoCompleteTextBox.LoadingContent>
             </acb:AutoCompleteTextBox>
-            <TextBox Text="{Binding Value}" MinWidth="150" Margin="20,0,0,0"/>
+            <acb:AutoCompleteTextBox Watermark="{Binding Watermark}" Text="{Binding Value}" MinWidth="150" Margin="20,0,0,0"/>
             <Button Width="25" Content="-" HorizontalAlignment="Left" Margin="35,0,0,0"/>
             <StackPanel.ContextMenu>
                 <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">

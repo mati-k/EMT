@@ -75,7 +75,7 @@ namespace EMT.ViewModels
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(new FileStream(_filesModel.LocalisationFile, FileMode.Create)))
+                using (StreamWriter writer = new StreamWriter(new FileStream(_filesModel.LocalisationFile, FileMode.Create), new UTF8Encoding(true)))
                 {
                     Localisation.Write(writer, MissionFile);
                     writer.WriteLine();

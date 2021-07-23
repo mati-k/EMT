@@ -141,6 +141,7 @@
     <Compile Include="Converters\ParadoxSaverCustom.cs" />
     <Compile Include="Converters\RichTextBoxConverter.cs" />
     <Compile Include="Handlers\DropTargetHandler.cs" />
+    <Compile Include="Models\ComplexTypeValues.cs" />
     <Compile Include="Models\FilesModel.cs" />
     <Compile Include="Models\FontColors.cs" />
     <Compile Include="Models\GfxFileModel.cs" />
@@ -158,6 +159,8 @@
     <Compile Include="Rules\Scope.cs" />
     <Compile Include="Rules\ScopeMeta.cs" />
     <Compile Include="Rules\Severity.cs" />
+    <Compile Include="Rules\TypeFilter.cs" />
+    <Compile Include="Rules\ValueListRule.cs" />
     <Compile Include="Rules\ValueRule.cs" />
     <Compile Include="SharedData\GfxStorage.cs" />
     <Compile Include="Models\GroupNodeModel.cs" />
@@ -270,44 +273,120 @@
     <None Include="cwtools-eu4-config\abilities.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="cwtools-eu4-config\common\00_small_types_consolidated.cwt" />
-    <None Include="cwtools-eu4-config\common\advisortypes.cwt" />
-    <None Include="cwtools-eu4-config\common\ages.cwt" />
-    <None Include="cwtools-eu4-config\common\ai_personalities.cwt" />
-    <None Include="cwtools-eu4-config\common\ancestor_personalities.cwt" />
-    <None Include="cwtools-eu4-config\common\buildings.cwt" />
-    <None Include="cwtools-eu4-config\common\casus_belli_and_war_goals.cwt" />
-    <None Include="cwtools-eu4-config\common\colonial_region.cwt" />
-    <None Include="cwtools-eu4-config\common\countries_consolidated.cwt" />
-    <None Include="cwtools-eu4-config\common\cultures.cwt" />
-    <None Include="cwtools-eu4-config\common\diplomatic_actions.cwt" />
-    <None Include="cwtools-eu4-config\common\diplomatic_actions_new.cwt" />
-    <None Include="cwtools-eu4-config\common\disasters.cwt" />
-    <None Include="cwtools-eu4-config\common\estates.cwt" />
-    <None Include="cwtools-eu4-config\common\federation_advancements.cwt" />
-    <None Include="cwtools-eu4-config\common\governments_and_reforms.cwt" />
-    <None Include="cwtools-eu4-config\common\greatprojects.cwt" />
-    <None Include="cwtools-eu4-config\common\ideas_and_native_advancements.cwt" />
-    <None Include="cwtools-eu4-config\common\imperial_incident.cwt" />
-    <None Include="cwtools-eu4-config\common\imperial_reforms.cwt" />
-    <None Include="cwtools-eu4-config\common\incidents.cwt" />
-    <None Include="cwtools-eu4-config\common\institutions.cwt" />
-    <None Include="cwtools-eu4-config\common\links.cwt" />
-    <None Include="cwtools-eu4-config\common\modifiers_consolidated.cwt" />
-    <None Include="cwtools-eu4-config\common\on_actions.cwt" />
-    <None Include="cwtools-eu4-config\common\opinion_modifiers.cwt" />
-    <None Include="cwtools-eu4-config\common\parliaments.cwt" />
-    <None Include="cwtools-eu4-config\common\peace_treaties.cwt" />
-    <None Include="cwtools-eu4-config\common\personalities.cwt" />
-    <None Include="cwtools-eu4-config\common\rebel_types.cwt" />
-    <None Include="cwtools-eu4-config\common\religions_and_related.cwt" />
-    <None Include="cwtools-eu4-config\common\scripted_functions.cwt" />
-    <None Include="cwtools-eu4-config\common\scripted_triggers_and_effects.cwt" />
-    <None Include="cwtools-eu4-config\common\subject_types.cwt" />
-    <None Include="cwtools-eu4-config\common\technologies.cwt" />
-    <None Include="cwtools-eu4-config\common\technology_groups.cwt" />
-    <None Include="cwtools-eu4-config\common\trade_consolidated.cwt" />
-    <None Include="cwtools-eu4-config\common\unit_types.cwt" />
+    <None Include="cwtools-eu4-config\common\00_small_types_consolidated.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\advisortypes.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\ages.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\ai_personalities.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\ancestor_personalities.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\buildings.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\casus_belli_and_war_goals.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\colonial_region.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\countries_consolidated.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\cultures.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\diplomatic_actions.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\diplomatic_actions_new.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\disasters.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\estates.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\federation_advancements.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\governments_and_reforms.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\greatprojects.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\ideas_and_native_advancements.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\imperial_incident.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\imperial_reforms.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\incidents.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\institutions.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\links.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\modifiers_consolidated.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\on_actions.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\opinion_modifiers.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\parliaments.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\peace_treaties.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\personalities.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\rebel_types.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\religions_and_related.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\scripted_functions.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\scripted_triggers_and_effects.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\subject_types.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\technologies.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\technology_groups.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\trade_consolidated.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="cwtools-eu4-config\common\unit_types.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="cwtools-eu4-config\customizable_localisation\custom_locs.cwt" />
     <None Include="cwtools-eu4-config\decisions\decisions.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -322,7 +401,9 @@
     <None Include="cwtools-eu4-config\enums.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="cwtools-eu4-config\events\events.cwt" />
+    <None Include="cwtools-eu4-config\events\events.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="cwtools-eu4-config\folders.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

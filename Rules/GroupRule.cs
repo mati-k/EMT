@@ -22,13 +22,23 @@ namespace EMT.Rules
                     Rules.Add(parser.Parse(new Scope() { Name = token }));
                 else if (Name.Equals("enums"))
                     Rules.Add(new ParadoxEnum() { Name = token, Values = parser.ReadStringList() });
+                else if (token.Equals("skip_root_key"))
+                    Rules.Add(new ValueListRule() { Name = token, Values = parser.ReadStringList() });
                 else
                     Rules.Add(parser.Parse(new GroupRule() { Name = token }));
             }
 
             else
             {
-                Rules.Add(new ValueRule() { Name = token, Value = parser.ReadString() });
+                if (token.Equals("skip_root_key"))
+                {
+                    ValueListRule rule = new ValueListRule() { Name = token };
+                    rule.Values.Add(parser.ReadString());
+                    Rules.Add(rule);
+                }
+
+                else
+                    Rules.Add(new ValueRule() { Name = token, Value = parser.ReadString() });
             }
         }
     }

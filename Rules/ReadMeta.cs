@@ -16,6 +16,17 @@ namespace EMT.Rules
             {
                 case "cardinality": ParadoxConfigParser.Instance.RuleStack.Add(new Cardinality(parser.ReadString())); return;
                 case "push_scope": ParadoxConfigParser.Instance.RuleStack.Add(new PushScope(parser.ReadString())); return;
+                case "type_key_filter":
+                    TypeFilter filter;
+                    if (parser.NextIsBracketed())
+                        filter = new TypeFilter(parser.ReadStringList());
+                    else
+                        filter = new TypeFilter(parser.ReadString());
+                    ParadoxConfigParser.Instance.RuleStack.Add(filter);
+                    return;
+                case "NOT":
+                    (ParadoxConfigParser.Instance.RuleStack.Last() as TypeFilter).Not = true;
+                    return;
                 case "replace_scope": ParadoxConfigParser.Instance.RuleStack.Add(parser.Parse(new ReplaceScope())); return;
                 case "severity": ParadoxConfigParser.Instance.RuleStack.Add(new Severity(parser.ReadString())); return;
                 case "scope":

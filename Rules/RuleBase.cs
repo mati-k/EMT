@@ -11,7 +11,7 @@ namespace EMT.Rules
     public abstract class RuleBase : IParadoxRead
     {
         public string Name { get; set; }
-        public IList<IRuleMeta> Meta { get; set; }
+        public IList<IRuleMeta> Meta { get; set; } = new List<IRuleMeta>();
 
         public RuleBase()
         {

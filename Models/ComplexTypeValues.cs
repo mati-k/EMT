@@ -14,6 +14,7 @@ namespace EMT.Models
         public ComplexTypeValues(string key)
         {
             this.Key = key;
+            this.Localisation = "";
         }
     }
 }

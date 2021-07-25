@@ -14,7 +14,7 @@ namespace EMT.Converters
     public class ParadoxConfigParser
     {
         private const string configPath = "cwtools-eu4-config";
-        private List<string> foldersToCheck = new List<string>() { "events", "common" };
+        private List<string> foldersToCheck = new List<string>() { "events", "common", "map" };
 
         public IList<IRuleMeta> RuleStack = new List<IRuleMeta>();
         
@@ -76,6 +76,17 @@ namespace EMT.Converters
                         read[i] = string.Format(@"{0} option_token = {{ NOT = yes }}", read[i]);
                     }
                 }
+
+
+                if (read[i].Contains("scalar") && !read[i].Contains("="))
+                {
+                    read[i] = @"not_empty = yes";
+                }
+
+                if (read[i].Contains('!') && !read[i].Contains("!="))
+                {
+                    read[i] = read[i].Replace("!", "not_");
+                }
             }
 
             ConfigFile configFile;
@@ -114,8 +125,13 @@ namespace EMT.Converters
 
         private void ParseTypes(List<RuleBase> types)
         {
+            Dictionary<string, string> localisations = ReadAllLocalisation();
+
             string vanillaFolder = @"G:\Steam\steamapps\common\Europa Universalis IV";
             string modFolder = @"C:\Users\Mati\Documents\Paradox Interactive\Europa Universalis IV\mod\Anbennar-PublicFork";
+
+            List<string> ignoreFiles = new List<string>() { "type[wargoal_type]", "type[new_diplomatic_action]" };
+            types.RemoveAll(r => ignoreFiles.Contains(r.Name));
 
             foreach (RuleBase rule in types)
             {
@@ -137,10 +153,10 @@ namespace EMT.Converters
                     if (ruleType.Rules.Where(r => r.Name.Equals("path_file")).Any())
                     {
                         string pathFile = (ruleType.Rules.Where(r => r.Name.Equals("path_file")).First() as ValueRule).Value;
-                        if (File.Exists(Path.Combine(modFolder, pathFile)))
-                            filesToParse.Add(Path.Combine(modFolder, pathFile));
+                        if (File.Exists(Path.Combine(modFolder, path, pathFile)))
+                            filesToParse.Add(Path.Combine(modFolder, path, pathFile));
                         else
-                            filesToParse.Add(Path.Combine(vanillaFolder, pathFile));
+                            filesToParse.Add(Path.Combine(vanillaFolder, path, pathFile));
                     }
                     else
                     {
@@ -173,7 +189,13 @@ namespace EMT.Converters
                             groupNodeModel = ParadoxParser.Parse(fileStream, new GroupNodeModel());
                         }
 
-                        values.AddRange(groupNodeModel.Nodes);
+                        if ((rule as GroupRule).Rules.Where(r => r.Name.Equals("name_from_file")).Any())
+                            groupNodeModel.Name = Path.GetFileNameWithoutExtension(file);
+
+                        if ((rule as GroupRule).Rules.Where(r => r.Name.Equals("type_per_file")).Any())
+                            values.Add(groupNodeModel);
+                        else
+                            values.AddRange(groupNodeModel.Nodes);
                     }
 
                     catch (Exception)
@@ -186,16 +208,12 @@ namespace EMT.Converters
                 TypesValues.Add(rule.Name, new Dictionary<string, List<ComplexTypeValues>>());
                 TypesValues[rule.Name].Add("", new List<ComplexTypeValues>());
 
-                var subTypes = ruleType.Rules.Where(r => r.Name.StartsWith("subtype") && r.Meta.Where(m => m is TypeFilter).Any()).ToList();
+                var subTypes = ruleType.Rules.Where(r => r.Name.StartsWith("subtype")).ToList();
                 foreach (var sub in subTypes) 
                 {
                     sub.Name = sub.Name.Replace("subtype[", "").Replace("]", "");
                     TypesValues[rule.Name].Add(sub.Name, new List<ComplexTypeValues>());
                 }
-
-                //name_from_file
-                //type_per_file
-                //start_from_root
 
                 values.RemoveAll(n => n.Name.Equals("namespace") || n.Name.Equals("normal_or_historical_nations"));
                 if (ruleType.Rules.Where(m => m is ValueListRule).Any())
@@ -205,14 +223,28 @@ namespace EMT.Converters
                     {
                         if (val.Values[i].Equals("any"))
                         {
-                            values = values.Where(v => v is GroupNodeModel).Select(v => v as GroupNodeModel).SelectMany(v => v.Nodes).ToList();
+                            values = values.Where(v => v is GroupNodeModel).Select(v => v as GroupNodeModel).SelectMany(v => v.Nodes.Where(n => n is GroupNodeModel)).ToList();
                         }
 
                         else
                         {
-                            values = values.Where(v => v.Name.Equals(val.Values[i])).Where(v => v is GroupNodeModel).Select(v => v as GroupNodeModel).SelectMany(v => v.Nodes).ToList();
+                            values = values.Where(v => v.Name.Equals(val.Values[i])).Where(v => v is GroupNodeModel).Select(v => v as GroupNodeModel).SelectMany(v => v.Nodes.Where(n => n is GroupNodeModel)).ToList();
                         }
                     }
+                }
+
+                Dictionary<string, string> locs = new Dictionary<string, string>();
+                if (ruleType.Rules.Where(r => r.Name.Equals("localisation")).Any())
+                {
+                    var locMeta = ruleType.Rules.Where(r => r.Name.Equals("localisation")).Select(r => r as GroupRule).First();
+                    if (locMeta.Rules.Where(r => r is ValueRule).Any())
+                        locs.Add("", locMeta.Rules.Where(r => r is ValueRule).Select(r => r as ValueRule).First().Value);
+
+                    locMeta.Rules.Where(r => r.Name.StartsWith("subtype[")).Select(r => r as GroupRule).ToList()
+                        .ForEach(s => {
+                            if (s.Rules.Where(r => r is ValueRule).Any())
+                                locs.Add(s.Name.Replace("subtype[", "").Replace("]", ""), s.Rules.Where(r => r is ValueRule).Select(r => r as ValueRule).First().Value);
+                        });
                 }
 
                 foreach (NodeModel node in values)
@@ -220,8 +252,15 @@ namespace EMT.Converters
                     ComplexTypeValues newValue;
                     string subtypePath = "";
 
-                    var subtypesMatches = subTypes.Where(s => s.Meta.Where(m => m is TypeFilter)
-                        .Select(m => m as TypeFilter).First().Matches(node.Name));
+                    if (!rule.MatchesType(node))
+                        continue;
+
+                    if (node.Name.Equals("despotic_monarchy"))
+                    {
+
+                    }
+
+                    var subtypesMatches = subTypes.Where(s => s.MatchesSubtype(node));
 
                     if (subtypesMatches.Any())
                     {
@@ -249,9 +288,67 @@ namespace EMT.Converters
                         }
                     }
 
+                    string locaKey = "";
+                    if (locs.ContainsKey(""))
+                        locaKey = locs[""];
+                    else if (subtypesMatches.Any() && locs.ContainsKey(subtypesMatches.First().Name))
+                        locaKey = subtypesMatches.First().Name;
+
+                    if (!String.IsNullOrWhiteSpace(locaKey))
+                    {
+                        if (locaKey.Contains("$"))
+                        {
+                            locaKey = locaKey.Replace("$", newValue.Key);
+                        }
+
+                        else
+                        {
+                            locaKey = ((node as GroupNodeModel).Nodes.Where(n => n.Name.Equals(locaKey)).First() as ValueNodeModel).Value;
+                        }
+                    }
+                    else
+                    {
+                        locaKey = node.Name;
+                    }
+
+                    if (localisations.ContainsKey(locaKey))
+                        newValue.Localisation = localisations[locaKey];
+
                     TypesValues[rule.Name][subtypePath].Add(newValue);
                 }
             }
         }
+
+        private Dictionary<string, string> ReadAllLocalisation()
+        {
+            Dictionary<string, string> localisations = new Dictionary<string, string>();
+
+            string vanillaFolder = @"G:\Steam\steamapps\common\Europa Universalis IV";
+            string modFolder = @"C:\Users\Mati\Documents\Paradox Interactive\Europa Universalis IV\mod\Anbennar-PublicFork";
+
+            string[] folders = new string[] { vanillaFolder, modFolder };
+
+            for (int i = 0; i < folders.Length; i++)
+            {
+                string[] files = Directory.GetFiles(Path.Combine(folders[i], "localisation"), ".yml");
+
+                foreach (string file in files)
+                {
+                    using (FileStream fileStream = new FileStream(file, FileMode.Open))
+                    {
+                        Localisation.Read(new StreamReader(fileStream)).ForEach(tuple =>
+                        {
+                            if (!localisations.ContainsKey(tuple.Item1))
+                                localisations.Add(tuple.Item1, tuple.Item2);
+                            else
+                                localisations[tuple.Item1] = tuple.Item2;
+                        });
+                    }
+                }
+            }
+
+            return localisations;
+        }
     }
 }
+//start_from_root

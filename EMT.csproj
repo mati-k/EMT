@@ -418,7 +418,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="cwtools-eu4-config\map\ambient_objects_and_terrain.cwt" />
-    <None Include="cwtools-eu4-config\map\areas_regions_etc.cwt" />
+    <None Include="cwtools-eu4-config\map\areas_regions_etc.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="cwtools-eu4-config\map\default_map.cwt" />
     <None Include="cwtools-eu4-config\map\tiles.cwt" />
     <None Include="cwtools-eu4-config\missions\missions.cwt" />

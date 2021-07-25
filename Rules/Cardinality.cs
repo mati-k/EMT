@@ -27,5 +27,16 @@ namespace EMT.Rules
             else
                 Max = int.Parse(range[range.Length - 1]);
         }
+
+        public bool WithinRange(int count)
+        {
+            if (count < Min)
+                return false;
+
+            if (count > Max && Max != -1)
+                return false;
+
+            return true;
+        }
     }
 }

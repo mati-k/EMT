@@ -2,12 +2,12 @@
 using EMT.Handlers;
 using EMT.Models;
 using GongSolutions.Wpf.DragDrop;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace EMT.ViewModels
 {
@@ -36,17 +36,17 @@ namespace EMT.ViewModels
 
         public void SelectMissionFile()
         {
-            FilesModel.MissionFile = SelectFile("txt File", ".txt");
+            FilesModel.MissionFile = SelectFile("txt File", "*.txt");
         }
 
         public void SelectLocalisationFile()
         {
-            FilesModel.LocalisationFile = SelectFile("yml File", ".yml");
+            FilesModel.LocalisationFile = SelectFile("yml File", "*.yml");
         }
 
         public void AddGFXFile()
         {
-            string file = SelectFile("gfx File", ".gfx");
+            string file = SelectFile("gfx File", "*.gfx");
             if (!string.IsNullOrEmpty(file))
                 FilesModel.GFXFiles.Add(file);
         }
@@ -58,13 +58,15 @@ namespace EMT.ViewModels
 
         private string SelectFile(string extensionTitle, string extension)
         {
-            CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
+            //Microsoft.Win32.file
+            //Microsoft.Win32.OpenFileDialog
+            OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Multiselect = false;
 
-            CommonFileDialogFilter filter = new CommonFileDialogFilter(extensionTitle, extension);
-            openFileDialog.Filters.Add(filter);
+            string filter = extension;
+            openFileDialog.Filter = extensionTitle + "|" + extension;
 
-            if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            if (openFileDialog.ShowDialog() == true)
             {
                 return openFileDialog.FileName;
             }

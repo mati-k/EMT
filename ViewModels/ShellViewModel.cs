@@ -172,7 +172,7 @@ namespace EMT.ViewModels
 
         private void LoadConfig()
         {
-            ParadoxConfigParser.Instance.ReadConfig();
+            //ParadoxConfigParser.Instance.ReadConfig();
             
             using (FileStream fileStream = new FileStream(Path.Combine(configPath, "effects.cwt"), FileMode.Open))
             {

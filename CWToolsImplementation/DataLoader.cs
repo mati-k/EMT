@@ -17,8 +17,7 @@ namespace EMT.CWToolsImplementation
 {
     public class DataLoader
     {
-        //private const string configFolder = @"cwtools-eu4-config";
-        private const string configFolder = @"E:\Moje\EMT_CONFIG\EMT_CONFIG\cwtools-eu4-config";
+        private const string configFolder = @"cwtools-eu4-config";
 
         private string vanillaFolder;
         private string modFolder;

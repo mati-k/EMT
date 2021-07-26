@@ -12,12 +12,20 @@ namespace EMT.CWToolsImplementation
     [Serializable]
     public class SavedModData
     {
-        FSharpMap<string, FSharpList<NewScope.TypeDefInfo>> Types { get; set; }
-        CachedRuleMetadata Meta { get; set; }
-        FSharpList<Effect> Effects { get; set; }
-        FSharpList<Effect> Triggers { get; set; }
+        public Dictionary<string, FSharpList<NewScope.TypeDefInfo>> Types { get; set; }
+        public CachedRuleMetadata Meta { get; set; }
+        public List<Effect> Effects { get; set; }
+        public List<Effect> Triggers { get; set; }
 
         public SavedModData(FSharpMap<string, FSharpList<NewScope.TypeDefInfo>> types, CachedRuleMetadata meta, FSharpList<Effect> effects, FSharpList<Effect> triggers)
+        {
+            Types = types.ToDictionary(t => t.Key, t => t.Value);
+            Meta = meta;
+            Effects = ListModule.ToSeq(effects).ToList();
+            Triggers = ListModule.ToSeq(triggers).ToList();
+        }
+
+        public SavedModData(Dictionary<string, FSharpList<NewScope.TypeDefInfo>> types, CachedRuleMetadata meta, List<Effect> effects, List<Effect> triggers)
         {
             Types = types;
             Meta = meta;

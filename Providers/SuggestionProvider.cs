@@ -8,6 +8,7 @@ using Caliburn.Micro;
 using System.Collections;
 using EMT.Models;
 using EMT.Converters;
+using EMT.CWToolsImplementation;
 
 namespace EMT.Providers
 {
@@ -29,10 +30,10 @@ namespace EMT.Providers
             if (node == null)
                 return;
 
-            //if (node.Root.Name.Equals("effect"))
-            //    suggestions = ParadoxConfigParser.Instance.EffectRules.Where(rule => rule is ValueRule).Select(rule => rule.Name).ToList();
-            //else
-            //    suggestions = ParadoxConfigParser.Instance.TriggerRules.Where(rule => rule is ValueRule).Select(rule => rule.Name).ToList();
+            if (node.Root.Name.Equals("effect"))
+                suggestions = ConfigStorage.Instance.ValueRules["effect"].Keys.ToList();
+            else
+                suggestions = ConfigStorage.Instance.ValueRules["trigger"].Keys.ToList();
         }
 
         public IEnumerable GetSuggestions(string filter)

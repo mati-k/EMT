@@ -1,5 +1,6 @@
 ﻿using EMT.Converters;
 using EMT.Models;
+using EMT.SharedData;
 using EMT.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -153,41 +154,41 @@ namespace EMT.Views
 
                         if (horizontalDiff < 0)
                         {
-                            AddIcon("arrow_left_out.dds", map[required.Name].Item1 + 4, map[required.Name].Item2 + 122);
+                            AddIcon("gfx_arrow_left_out", map[required.Name].Item1 + 4, map[required.Name].Item2 + 122);
                             for (int i = 0; i > horizontalDiff + 1; i--)
                             {
-                                AddIcon("arrow_horizontal_skip_slot.dds", map[required.Name].Item1 + (i-1) * w - 6, map[required.Name].Item2 + 127);
+                                AddIcon("gfx_arrow_horizontal_skip_slot", map[required.Name].Item1 + (i-1) * w - 6, map[required.Name].Item2 + 127);
                             }
 
-                            AddIcon("arrow_left_in.dds", map[required.Name].Item1 + (w * horizontalDiff) + 69, map[required.Name].Item2 + 125 + (verticalDiff - 1) * (h + spaceVertical));
-                            AddIcon("arrow_end.dds", map[required.Name].Item1 + 61 + (w * horizontalDiff), map[required.Name].Item2 + 141 + (verticalDiff-1) * (h + spaceVertical));
+                            AddIcon("gfx_arrow_left_in", map[required.Name].Item1 + (w * horizontalDiff) + 69, map[required.Name].Item2 + 125 + (verticalDiff - 1) * (h + spaceVertical));
+                            AddIcon("gfx_arrow_end", map[required.Name].Item1 + 61 + (w * horizontalDiff), map[required.Name].Item2 + 141 + (verticalDiff-1) * (h + spaceVertical));
                         }
 
                         else if (horizontalDiff > 0)
                         {
-                            AddIcon("arrow_right_out.dds", map[required.Name].Item1 + 60, map[required.Name].Item2 + 122);
+                            AddIcon("gfx_arrow_right_out", map[required.Name].Item1 + 60, map[required.Name].Item2 + 122);
                             for (int i = 0; i < horizontalDiff - 1; i++)
                             {
-                                AddIcon("arrow_horizontal_skip_slot.dds", map[required.Name].Item1 + (i + 1) * w - 6, map[required.Name].Item2 + 127);
+                                AddIcon("gfx_arrow_horizontal_skip_slot", map[required.Name].Item1 + (i + 1) * w - 6, map[required.Name].Item2 + 127);
                             }
 
-                            AddIcon("arrow_right_in.dds", map[required.Name].Item1 + (w * horizontalDiff) - 5, map[required.Name].Item2 + 127 + (verticalDiff-1) * (h + spaceVertical));
-                            AddIcon("arrow_end.dds", map[required.Name].Item1 + 15 + (w * horizontalDiff), map[required.Name].Item2 + 141 + (verticalDiff-1) * (h + spaceVertical));
+                            AddIcon("gfx_arrow_right_in", map[required.Name].Item1 + (w * horizontalDiff) - 5, map[required.Name].Item2 + 127 + (verticalDiff-1) * (h + spaceVertical));
+                            AddIcon("gfx_arrow_end", map[required.Name].Item1 + 15 + (w * horizontalDiff), map[required.Name].Item2 + 141 + (verticalDiff-1) * (h + spaceVertical));
                         }
 
                         else
                         {
-                            AddIcon("arrow_verticall_tile.dds", map[required.Name].Item1 + 46, map[required.Name].Item2 + 121);
+                            AddIcon("gfx_arrow_verticall_tile", map[required.Name].Item1 + 46, map[required.Name].Item2 + 121);
 
                             for (int i = 0; i < verticalDiff - 1; i++)
                             {
-                                AddIcon("arrow_verticall_skip_tier.dds", map[required.Name].Item1 + 46, map[required.Name].Item2 + 121 + i * (h+spaceVertical));
+                                AddIcon("gfx_arrow_verticall_skip_tier", map[required.Name].Item1 + 46, map[required.Name].Item2 + 121 + i * (h+spaceVertical));
                             }
 
                             if (verticalDiff > 1)
-                                AddIcon("arrow_verticall_tile.dds", map[required.Name].Item1 + 46, map[required.Name].Item2 + 121 + (verticalDiff - 1) * (h + spaceVertical));
+                                AddIcon("gfx_arrow_verticall_tile", map[required.Name].Item1 + 46, map[required.Name].Item2 + 121 + (verticalDiff - 1) * (h + spaceVertical));
 
-                            AddIcon("arrow_end.dds", map[required.Name].Item1 + 38, map[required.Name].Item2 + 141 + (verticalDiff-1) * (h + spaceVertical));
+                            AddIcon("gfx_arrow_end", map[required.Name].Item1 + 38, map[required.Name].Item2 + 141 + (verticalDiff-1) * (h + spaceVertical));
                         }
                     }
                 }
@@ -200,7 +201,7 @@ namespace EMT.Views
             arrow.Stretch = Stretch.None;
             arrow.HorizontalAlignment = HorizontalAlignment.Left;
             arrow.VerticalAlignment = VerticalAlignment.Top;
-            arrow.Source = DDSConverter.Convert("Icons/" + icon);
+            arrow.Source = DDSConverter.Convert(GfxStorage.Instance.GfxFiles[icon]);
             arrow.Margin = new Thickness(x, y, 0, 0);
             arrow.SetValue(Panel.ZIndexProperty, -1);
             MainGrid.Children.Add(arrow);

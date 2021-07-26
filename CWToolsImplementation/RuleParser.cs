@@ -82,5 +82,3 @@ namespace EMT.CWToolsImplementation
         }
     }
 }
-//+Item1   LeafRule(SpecificField(SpecificValue CWTools.Utilities.StringTokens), ValueField(Int(-2147483648, 2147483647))) CWTools.Rules.RuleType { CWTools.Rules.RuleType.LeafRule}
-//+Item1   LeafRule(SpecificField(SpecificValue CWTools.Utilities.StringTokens), VariableGetField "named_unrest")    CWTools.Rules.RuleType { CWTools.Rules.RuleType.LeafRule}

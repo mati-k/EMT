@@ -142,29 +142,8 @@ namespace EMT.ViewModels
             }
 
             LoadConfig(message.VanillaFolder, message.ModFolder);
-
-            Dictionary<string, string> gfxFiles = new Dictionary<string, string>();
-            //foreach (string gfxFile in message.GFXFiles)
-            //{
-            //    using (FileStream fileStream = new FileStream(gfxFile, FileMode.Open))
-            //    {
-            //        GfxFileModel gfxFileData = ParadoxParser.Parse(fileStream, new GfxFileModel());
-            //        string rootDirectory = Directory.GetParent(gfxFile).Parent.FullName;
-
-            //        gfxFileData.Gfx.ToList().ForEach(gfx=> {
-            //            if (gfxFiles.ContainsKey(gfx.Name))
-            //            {
-            //                gfxFiles[gfx.Name] = Path.Combine(rootDirectory, gfx.TextureFile);
-            //            }
-
-            //            else
-            //            {
-            //                gfxFiles.Add(gfx.Name, Path.Combine(rootDirectory, gfx.TextureFile));
-            //            }
-            //        });
-            //    }
-            //}
-            GfxStorage.Instance.GfxFiles = gfxFiles;
+            LoadGfx(message.VanillaFolder, message.ModFolder);
+            
             MissionFile = missionFileModel;
             _eventAggregator.PublishOnUIThreadAsync(missionFileModel);
 
@@ -175,7 +154,43 @@ namespace EMT.ViewModels
         {
             DataLoader dataLoader = new DataLoader(vanillaFolder, modFolder);
             dataLoader.Load();
-            new RuleParser(dataLoader.SavedData, dataLoader.Rules).Parse();
+
+            RuleParser parser = new RuleParser(dataLoader.SavedData, dataLoader.Rules);
+            parser.Parse();
+            // dataLoader.SavedData.Types.Where(t => t.Key.Equals("sprite")).ToList()
+            var test = dataLoader.SavedData.Types.Where(t => t.Key.Equals("sprite")).First().Value.Where(v => v.id.Equals("mission_a_sunny_day")).ToList();
+
+            ConfigStorage.Instance.SavedData = dataLoader.SavedData;
+            ConfigStorage.Instance.ValueRules = parser.ValueRules;
+            ConfigStorage.Instance.NodeRules = parser.NodeRules;
+        }
+
+        private void LoadGfx(string vanillaFolder, string modFolder)
+        {
+            Dictionary<string, string> gfxFiles = new Dictionary<string, string>();
+            List<string> files = CWTools.Utilities.Utils.getAllFoldersUnion(new List<string>() { Path.Combine(modFolder, "interface"), Path.Combine(vanillaFolder, "interface") })
+                                .SelectMany(folder => Directory.EnumerateFiles(folder)).Where(f => Path.GetExtension(f).Equals(".gfx")).ToList();
+
+            foreach (string gfxFile in files)
+            {
+                using (FileStream fileStream = new FileStream(gfxFile, FileMode.Open))
+                {
+                    GfxFileModel gfxFileData = ParadoxParser.Parse(fileStream, new GfxFileModel());
+                    string rootDirectory = gfxFile;
+                    while (!(rootDirectory.Equals(modFolder) || rootDirectory.Equals(vanillaFolder)))
+                        rootDirectory = Directory.GetParent(rootDirectory).FullName;
+
+                    gfxFileData.Gfx.ToList().ForEach(gfx=> {
+                        if (gfx.TextureFile != null && !gfxFiles.ContainsKey(gfx.Name))
+                        {
+                            if (gfx.TextureFile.Replace(@"//", @"/").StartsWith("gfx/interface/missions"))
+                                gfxFiles.Add(gfx.Name, Path.Combine(rootDirectory, gfx.TextureFile));
+                        }
+                    });
+                }
+            }
+
+            GfxStorage.Instance.GfxFiles = gfxFiles;
         }
     }
 }

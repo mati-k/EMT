@@ -14,10 +14,10 @@ namespace EMT.Models
 
         public void TokenCallback(ParadoxParser parser, string token)
         {
-            if (token == "name")
+            if (token.Equals("name".ToLower()))
                 Name = parser.ReadString();
 
-            else if (token == "texturefile")
+            else if (token.Equals("texturefile".ToLower()))
                 TextureFile = parser.ReadString();
         }
     }

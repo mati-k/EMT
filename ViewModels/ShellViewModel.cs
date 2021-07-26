@@ -185,6 +185,8 @@ namespace EMT.ViewModels
                         {
                             if (gfx.TextureFile.Replace(@"//", @"/").StartsWith("gfx/interface/missions"))
                                 gfxFiles.Add(gfx.Name, Path.Combine(rootDirectory, gfx.TextureFile));
+                            if (gfx.Name.Equals("GFX_mission_icons_frame"))
+                                StaticPaths.Instance.MissionFramePath = Path.Combine(rootDirectory, gfx.TextureFile);
                         }
                     });
                 }

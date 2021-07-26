@@ -19,7 +19,8 @@ namespace EMT.Models
 
         private string _missionFile;
         private string _localisationFile;
-        public BindableCollection<string> _gfxFiles = new BindableCollection<string>();
+        private string _vanillaFolder;
+        private string _modFolder;
 
         [DataMember]
         public string MissionFile
@@ -44,13 +45,24 @@ namespace EMT.Models
         }
 
         [DataMember]
-        public BindableCollection<string> GFXFiles
+        public string VanillaFolder
         {
-            get { return _gfxFiles; }
+            get { return _vanillaFolder; }
             set
             {
-                _gfxFiles = value;
-                NotifyOfPropertyChange(() => GFXFiles);
+                _vanillaFolder = value;
+                NotifyOfPropertyChange(() => VanillaFolder);
+            }
+        }
+
+        [DataMember]
+        public string ModFolder
+        {
+            get { return _modFolder; }
+            set
+            {
+                _modFolder = value;
+                NotifyOfPropertyChange(() => ModFolder);
             }
         }
 
@@ -59,11 +71,12 @@ namespace EMT.Models
 
         }
 
-        public FilesModel(string missionFile, string localizationFile, BindableCollection<string> gfxFiles)
+        public FilesModel(string missionFile, string localizationFile, string vanillaFolder, string modFolder)
         {
             this.MissionFile = missionFile;
             this.LocalisationFile = localizationFile;
-            this.GFXFiles = gfxFiles;
+            this.VanillaFolder = vanillaFolder;
+            this.ModFolder = modFolder;
         }
 
         public void SaveToJson()
@@ -77,7 +90,6 @@ namespace EMT.Models
             try
             {
                 string file = File.ReadAllText(pathsFile);
-               
                 FilesModel filesModel = JsonConvert.DeserializeObject<FilesModel>(file);
                 
                 return filesModel;

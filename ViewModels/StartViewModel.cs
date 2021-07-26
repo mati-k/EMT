@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace EMT.ViewModels
 {
@@ -36,37 +36,46 @@ namespace EMT.ViewModels
 
         public void SelectMissionFile()
         {
-            FilesModel.MissionFile = SelectFile("txt File", "*.txt");
+            FilesModel.MissionFile = SelectFile("txt File", ".txt");
         }
 
         public void SelectLocalisationFile()
         {
-            FilesModel.LocalisationFile = SelectFile("yml File", "*.yml");
+            FilesModel.LocalisationFile = SelectFile("yml File", ".yml");
         }
 
-        public void AddGFXFile()
+        public void SelectVanillaFolder()
         {
-            string file = SelectFile("gfx File", "*.gfx");
-            if (!string.IsNullOrEmpty(file))
-                FilesModel.GFXFiles.Add(file);
+            FilesModel.VanillaFolder = SelectFolder();
         }
 
-        public void RemoveGFXFile(string file)
+        public void SelectModFolder()
         {
-            FilesModel.GFXFiles.Remove(file);
+            FilesModel.ModFolder = SelectFolder();
         }
 
         private string SelectFile(string extensionTitle, string extension)
         {
-            //Microsoft.Win32.file
-            //Microsoft.Win32.OpenFileDialog
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
             openFileDialog.Multiselect = false;
 
-            string filter = extension;
-            openFileDialog.Filter = extensionTitle + "|" + extension;
+            openFileDialog.Filters.Add(new CommonFileDialogFilter(extensionTitle, extension));
 
-            if (openFileDialog.ShowDialog() == true)
+            if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                return openFileDialog.FileName;
+            }
+
+            return "";
+        }
+
+        public string SelectFolder()
+        {
+            CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
+            openFileDialog.Multiselect = false;
+            openFileDialog.IsFolderPicker = true;
+
+            if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 return openFileDialog.FileName;
             }

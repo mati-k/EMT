@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using EMT.SharedData;
+using EMT.CWToolsImplementation;
 
 namespace EMT.ViewModels
 {
@@ -140,29 +141,29 @@ namespace EMT.ViewModels
                 }
             }
 
-            LoadConfig();
+            LoadConfig(message.VanillaFolder, message.ModFolder);
 
             Dictionary<string, string> gfxFiles = new Dictionary<string, string>();
-            foreach (string gfxFile in message.GFXFiles)
-            {
-                using (FileStream fileStream = new FileStream(gfxFile, FileMode.Open))
-                {
-                    GfxFileModel gfxFileData = ParadoxParser.Parse(fileStream, new GfxFileModel());
-                    string rootDirectory = Directory.GetParent(gfxFile).Parent.FullName;
+            //foreach (string gfxFile in message.GFXFiles)
+            //{
+            //    using (FileStream fileStream = new FileStream(gfxFile, FileMode.Open))
+            //    {
+            //        GfxFileModel gfxFileData = ParadoxParser.Parse(fileStream, new GfxFileModel());
+            //        string rootDirectory = Directory.GetParent(gfxFile).Parent.FullName;
 
-                    gfxFileData.Gfx.ToList().ForEach(gfx=> {
-                        if (gfxFiles.ContainsKey(gfx.Name))
-                        {
-                            gfxFiles[gfx.Name] = Path.Combine(rootDirectory, gfx.TextureFile);
-                        }
+            //        gfxFileData.Gfx.ToList().ForEach(gfx=> {
+            //            if (gfxFiles.ContainsKey(gfx.Name))
+            //            {
+            //                gfxFiles[gfx.Name] = Path.Combine(rootDirectory, gfx.TextureFile);
+            //            }
 
-                        else
-                        {
-                            gfxFiles.Add(gfx.Name, Path.Combine(rootDirectory, gfx.TextureFile));
-                        }
-                    });
-                }
-            }
+            //            else
+            //            {
+            //                gfxFiles.Add(gfx.Name, Path.Combine(rootDirectory, gfx.TextureFile));
+            //            }
+            //        });
+            //    }
+            //}
             GfxStorage.Instance.GfxFiles = gfxFiles;
             MissionFile = missionFileModel;
             _eventAggregator.PublishOnUIThreadAsync(missionFileModel);
@@ -170,18 +171,11 @@ namespace EMT.ViewModels
             return ActivateItemAsync(_missionViewModel, CancellationToken.None);
         }
 
-        private void LoadConfig()
+        private void LoadConfig(string vanillaFolder, string modFolder)
         {
-            //ParadoxConfigParser.Instance.ReadConfig();
-            
-            using (FileStream fileStream = new FileStream(Path.Combine(configPath, "effects.cwt"), FileMode.Open))
-            {
-                //configFile = ParadoxParser.Parse(fileStream, new ConfigFileModel());
-            }
-            //List<string> stringList = configFile.Nodes.Where(node => node is ValueNodeModel).Select(node => node.Name)
-            //    .Select(value => value.Replace("alias[effect:", "").Replace("]", "")).ToList();
-
-            //Providers.SuggestionProvider.Instance.Effects = new BindableCollection<string>(stringList);
+            DataLoader dataLoader = new DataLoader(vanillaFolder, modFolder);
+            dataLoader.Load();
+            new RuleParser(dataLoader.SavedData, dataLoader.Rules).Parse();
         }
     }
 }

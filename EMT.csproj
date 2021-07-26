@@ -41,6 +41,9 @@
     <None Update="cwtools-eu4-config\.editorconfig">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="cwtools-eu4-config\.git">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="cwtools-eu4-config\.gitlab-ci.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -161,10 +164,16 @@
     <None Update="cwtools-eu4-config\common\unit_types.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="cwtools-eu4-config\customizable_localisation\custom_locs.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="cwtools-eu4-config\decisions\decisions.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cwtools-eu4-config\dlc_event_pics.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\dlc_metadata\dlc_metadata.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cwtools-eu4-config\effects.cwt">
@@ -179,19 +188,55 @@
     <None Update="cwtools-eu4-config\folders.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="cwtools-eu4-config\gfx\sprite_packs.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\gfx\sprite_packsorder.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\history\history_consolidated.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\interface\sprites.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="cwtools-eu4-config\LICENSE">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cwtools-eu4-config\localisation.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="cwtools-eu4-config\map\ambient_objects_and_terrain.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="cwtools-eu4-config\map\areas_regions_etc.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\map\default_map.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\map\tiles.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\missions\missions.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cwtools-eu4-config\modifiers.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cwtools-eu4-config\modifier_rule.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\new\1_28_rules.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\new\1_29_rules.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\new\1_30_new_features.cwt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cwtools-eu4-config\new\1_30_rules.cwt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cwtools-eu4-config\on_actions.csv">
@@ -232,7 +277,9 @@
     <Resource Include="cwtools-eu4-config\needed things.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="cwtools-eu4-config\new\useful errors.txt" />
+    <Resource Include="cwtools-eu4-config\new\useful errors.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="cwtools-eu4-config\on actions wip.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -268,6 +315,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CWTools" Version="0.4.0-alpha4" />
+    <PackageReference Include="FSharp.Core" Version="5.0.2" />
+    <PackageReference Include="FsPickler" Version="5.3.2" />
+    <PackageReference Include="FsPickler.CSharp" Version="4.6.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.2.236301">
@@ -281,5 +332,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Pdoxcl2Sharp" Version="0.6.1" />
     <PackageReference Include="Pfim" Version="0.10.0" />
+    <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
   </ItemGroup>
 </Project>

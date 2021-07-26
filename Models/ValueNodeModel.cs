@@ -1,5 +1,4 @@
 ﻿using EMT.Converters;
-using EMT.Rules;
 using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;
@@ -49,10 +48,10 @@ namespace EMT.Models
             get
             {
                 List<string> types = new List<string>();
-                if (Root.Name.Equals("effect"))
-                    types = ParadoxConfigParser.Instance.EffectRules.Where(rule => rule is ValueRule).Where(rule => rule.Name.Equals(Name)).Select(rule => (rule as ValueRule).Value).ToList();
-                else
-                    types = ParadoxConfigParser.Instance.TriggerRules.Where(rule => rule is ValueRule).Where(rule => rule.Name.Equals(Name)).Select(rule => (rule as ValueRule).Value).ToList();
+                //if (Root.Name.Equals("effect"))
+                //    types = ParadoxConfigParser.Instance.EffectRules.Where(rule => rule is ValueRule).Where(rule => rule.Name.Equals(Name)).Select(rule => (rule as ValueRule).Value).ToList();
+                //else
+                //    types = ParadoxConfigParser.Instance.TriggerRules.Where(rule => rule is ValueRule).Where(rule => rule.Name.Equals(Name)).Select(rule => (rule as ValueRule).Value).ToList();
 
                 if (types.Count == 0)
                     return "Key not found";

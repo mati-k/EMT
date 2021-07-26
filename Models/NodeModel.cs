@@ -1,7 +1,6 @@
 ﻿using AutoCompleteTextBox.Editors;
 using Caliburn.Micro;
 using EMT.Converters;
-using EMT.Rules;
 using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;

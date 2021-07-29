@@ -79,8 +79,8 @@ namespace EMT.CWToolsImplementation
                 );
 
             IGame<EU4ComputedData> eu4Game = new EU4Game(gameSettings);
-
-            SavedData = new SavedModData(eu4Game.Types(), eu4Game.GetEmbeddedMetadata(), eu4Game.ScriptedEffects(), eu4Game.ScriptedTriggers());
+            
+            SavedData = new SavedModData(eu4Game.Types(), eu4Game.GetEmbeddedMetadata(), eu4Game.ScriptedEffects(), eu4Game.ScriptedTriggers(), eu4Game.TypeDefs());
 
             byte[] save = BinarySerializer.Create().Pickle<SavedModData>(SavedData);
             File.WriteAllBytes(string.Format(@"saved_{0}.cwb", Path.GetFileName(modFolder)), save);

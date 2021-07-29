@@ -14,7 +14,7 @@ namespace EMT.CWToolsImplementation
         private SavedModData savedModData;
         private List<RootRule> rules;
 
-        public Dictionary<string, Dictionary<string, List<string>>> ValueRules { get; set; }
+        public Dictionary<string, Dictionary<string, List<ValueRuleData>>> ValueRules { get; set; }
         public Dictionary<string, Dictionary<string, List<string>>> NodeRules { get; set; }
 
         public RuleParser(SavedModData savedModData, List<RootRule> rules)
@@ -22,9 +22,9 @@ namespace EMT.CWToolsImplementation
             this.savedModData = savedModData;
             this.rules = rules;
 
-            ValueRules = new Dictionary<string, Dictionary<string, List<string>>>();
-            ValueRules.Add("trigger", new Dictionary<string, List<string>>());
-            ValueRules.Add("effect", new Dictionary<string, List<string>>());
+            ValueRules = new Dictionary<string, Dictionary<string, List<ValueRuleData>>>();
+            ValueRules.Add("trigger", new Dictionary<string, List<ValueRuleData>>());
+            ValueRules.Add("effect", new Dictionary<string, List<ValueRuleData>>());
 
             NodeRules = new Dictionary<string, Dictionary<string, List<string>>>();
             NodeRules.Add("trigger", new Dictionary<string, List<string>>());
@@ -48,19 +48,26 @@ namespace EMT.CWToolsImplementation
 
                 if (rule.Item2.Item1.IsLeafRule)
                 {
+                    ValueRuleData valueRuleData = new ValueRuleData(options, descr);
+
                     var leaf = rule.Item2.Item1 as RuleType.LeafRule;
 
                     string name = "";
                     if (leaf.left.IsSpecificField)
+                    {
                         name = StringResource.stringManager.GetStringForID((leaf.left as NewField.SpecificField).Item.valuec.normal);
+                        valueRuleData.Field = leaf.right;
+                    }
                     else if (leaf.left.IsTypeField)
+                    {
                         name = ((leaf.left as NewField.TypeField).Item as TypeType.Simple).name;
+                        valueRuleData.Field = leaf.right;
+                    }
 
                     if (!ValueRules[rule.Item1].ContainsKey(name))
-                        ValueRules[rule.Item1].Add(name, new List<string>());
+                        ValueRules[rule.Item1].Add(name, new List<ValueRuleData>());
 
-                    ValueRules[rule.Item1][name].Add(descr);
-                
+                    ValueRules[rule.Item1][name].Add(valueRuleData);
                 }
 
                 else if (rule.Item2.Item1.IsNodeRule)

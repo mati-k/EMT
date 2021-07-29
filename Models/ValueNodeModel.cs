@@ -1,4 +1,6 @@
 ﻿using EMT.Converters;
+using EMT.CWToolsImplementation;
+using EMT.Providers;
 using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,49 @@ namespace EMT.Models
 {
     public class ValueNodeModel : NodeModel
     {
-        public string Value { get; set; }
+        private string _value;
+        private ValueNodeSuggestion _nameSuggestion;
+        private ValueNodeSuggestion _valueSuggestion;
+
+        public string Value
+        {
+            get { return _value; }
+            set
+            {
+                _value = value;
+                NotifyOfPropertyChange(() => Value);
+            }
+        }
+
+        public ValueNodeSuggestion NameSuggestion
+        {
+            get { return _nameSuggestion; }
+            set
+            {
+                _nameSuggestion = value;
+                
+                if (value != null)
+                {
+                    NotifyOfPropertyChange(() => NameSuggestion);
+                    Name = NameSuggestion.Key;
+                }
+            }
+        }
+
+        public ValueNodeSuggestion ValueSuggestion
+        {
+            get { return _valueSuggestion; }
+            set
+            {
+                _valueSuggestion = value;
+
+                if (value != null)
+                {
+                    NotifyOfPropertyChange(() => ValueSuggestion);
+                    Value = ValueSuggestion.Key;
+                }
+            }
+        }
 
         public override string Name 
         { 
@@ -48,10 +92,14 @@ namespace EMT.Models
             get
             {
                 List<string> types = new List<string>();
-                //if (Root.Name.Equals("effect"))
-                //    types = ParadoxConfigParser.Instance.EffectRules.Where(rule => rule is ValueRule).Where(rule => rule.Name.Equals(Name)).Select(rule => (rule as ValueRule).Value).ToList();
-                //else
-                //    types = ParadoxConfigParser.Instance.TriggerRules.Where(rule => rule is ValueRule).Where(rule => rule.Name.Equals(Name)).Select(rule => (rule as ValueRule).Value).ToList();
+
+                if (Name != null && ConfigStorage.Instance.ValueRules != null)
+                {
+                    if (Root.Name.Equals("effect"))
+                        types = ConfigStorage.Instance.ValueRules["effect"].Where(rule => rule.Key.Equals(Name)).Select(rule => rule.Value.First().Description).ToList();
+                    else
+                        types = ConfigStorage.Instance.ValueRules["trigger"].Where(rule => rule.Key.Equals(Name)).Select(rule => rule.Value.First().Description).ToList();
+                }
 
                 if (types.Count == 0)
                     return "Key not found";

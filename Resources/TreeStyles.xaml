@@ -25,6 +25,19 @@
         </Setter>
     </Style>
 
+    <DataTemplate DataType="{x:Type provider:ValueNodeSuggestion}">
+        <Grid Grid.IsSharedSizeScope="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="AutoName"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="AutoValue"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding Key}" Margin="5,0,0,0"/>
+            <TextBlock Grid.Column="1" Text="|" Margin="5,0"/>
+            <TextBlock Grid.Column="2" Text="{Binding Localisation}" Margin="5,0,0,0"/>
+        </Grid>
+    </DataTemplate>
+
     <HierarchicalDataTemplate ItemsSource="{Binding Nodes}" DataType="{x:Type models:GroupNodeModel}">
         <StackPanel Orientation="Horizontal">
             <TextBox Text="{Binding Name}" MinWidth="50" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
@@ -42,13 +55,10 @@
 
     <DataTemplate DataType="{x:Type models:ValueNodeModel}">
         <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
-            <acb:AutoCompleteTextBox Text="" Provider="{x:Static provider:SuggestionProvider.Instance}" MinWidth="150" cal:Message.Attach="[Event GotFocus] = [Action Select()]"
-                                                                       SelectedItem="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}">
-                <acb:AutoCompleteTextBox.LoadingContent>
-                    <TextBlock Text="Loading..." Margin="5" FontSize="14" />
-                </acb:AutoCompleteTextBox.LoadingContent>
-            </acb:AutoCompleteTextBox>
-            <acb:AutoCompleteTextBox Watermark="{Binding Watermark}" Text="{Binding Value}" MinWidth="150" Margin="20,0,0,0"/>
+            <acb:AutoCompleteTextBox Provider="{x:Static provider:ValueNodeKeySuggestionProvider.Instance}" MinWidth="200" cal:Message.Attach="[Event GotFocus] = [Action Select()]"
+                                     Text="{Binding Name}" DisplayMember="Key" SelectedItem="{Binding NameSuggestion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}" />
+            <acb:AutoCompleteTextBox Watermark="{Binding Watermark}" Provider="{x:Static provider:ValueNodeValueSuggestionProvider.Instance}" cal:Message.Attach="[Event GotFocus] = [Action Select()]"
+                                     Text="{Binding Value}" DisplayMember="Key" SelectedItem="{Binding ValueSuggestion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}" MinWidth="200" Margin="20,0,0,0"/>
             <Button Width="25" Content="-" HorizontalAlignment="Left" Margin="35,0,0,0"/>
             <StackPanel.ContextMenu>
                 <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">

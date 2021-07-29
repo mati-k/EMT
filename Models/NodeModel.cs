@@ -55,7 +55,7 @@ namespace EMT.Models
 
         public void Select()
         {
-            Providers.SuggestionProvider.Instance.SelectNode(this);
+            Providers.ProviderUpdater.Instance.SelectNode(this);
         }
     }
 }

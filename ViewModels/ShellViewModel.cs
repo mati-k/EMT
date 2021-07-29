@@ -143,7 +143,8 @@ namespace EMT.ViewModels
 
             LoadConfig(message.VanillaFolder, message.ModFolder);
             LoadGfx(message.VanillaFolder, message.ModFolder);
-            
+            BindLocalisation(message.VanillaFolder, message.ModFolder);
+
             MissionFile = missionFileModel;
             _eventAggregator.PublishOnUIThreadAsync(missionFileModel);
 
@@ -157,8 +158,6 @@ namespace EMT.ViewModels
 
             RuleParser parser = new RuleParser(dataLoader.SavedData, dataLoader.Rules);
             parser.Parse();
-            // dataLoader.SavedData.Types.Where(t => t.Key.Equals("sprite")).ToList()
-            var test = dataLoader.SavedData.Types.Where(t => t.Key.Equals("sprite")).First().Value.Where(v => v.id.Equals("mission_a_sunny_day")).ToList();
 
             ConfigStorage.Instance.SavedData = dataLoader.SavedData;
             ConfigStorage.Instance.ValueRules = parser.ValueRules;
@@ -193,6 +192,54 @@ namespace EMT.ViewModels
             }
 
             GfxStorage.Instance.GfxFiles = gfxFiles;
+        }
+
+        private void BindLocalisation(string vanillaFolder, string modFolder)
+        {
+            Dictionary<string, string> tempLoca = new Dictionary<string, string>();
+            ConfigStorage.Instance.LocalisationBindings = new Dictionary<string, Dictionary<string, string>>();
+
+            List<string> files = CWTools.Utilities.Utils.getAllFoldersUnion(new List<string>() { Path.Combine(modFolder, "localisation"), Path.Combine(vanillaFolder, "localisation") })
+                                .SelectMany(folder => Directory.EnumerateFiles(folder)).Where(f => Path.GetExtension(f).Equals(".yml")).ToList();
+
+            foreach (string locFile in files)
+            {
+                using (FileStream fileStream = new FileStream(locFile, FileMode.Open))
+                {
+                    var loca = Localisation.Read(new StreamReader(fileStream));
+                    loca.ForEach(keyValue =>
+                    {
+                        if (!tempLoca.ContainsKey(keyValue.Item1))
+                            tempLoca.Add(keyValue.Item1, keyValue.Item2);
+                    });
+                }
+            }
+            foreach (var type in ConfigStorage.Instance.SavedData.Types)
+            {
+                Dictionary<string, string> typeLoca = new Dictionary<string, string>();
+
+                foreach (var val in type.Value)
+                {
+                    if (val.explicitLocalisation.Length > 0 && tempLoca.ContainsKey(val.explicitLocalisation[0].Item2))
+                        typeLoca.Add(val.id, val.explicitLocalisation[0].Item2);
+                    else if (ConfigStorage.Instance.SavedData.TypeLoca.ContainsKey(type.Key))
+                    {
+                        string key = ConfigStorage.Instance.SavedData.TypeLoca[type.Key].Replace("$", val.id);
+                        if (tempLoca.ContainsKey(key) && !typeLoca.ContainsKey(val.id))
+                            typeLoca.Add(val.id, tempLoca[key]);
+                    }
+                }
+
+                ConfigStorage.Instance.LocalisationBindings.Add(type.Key, typeLoca);
+            }
+
+            Dictionary<string, string> countryTags = new Dictionary<string, string>();
+            foreach (var tag in ConfigStorage.Instance.SavedData.Meta.enumDefs["country_tags"].Item2)
+            {
+                if (tempLoca.ContainsKey(tag))
+                    countryTags.Add(tag, tempLoca[tag]);
+            }
+            ConfigStorage.Instance.LocalisationBindings.Add("country_tags", countryTags);
         }
     }
 }

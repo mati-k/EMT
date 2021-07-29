@@ -20,7 +20,8 @@ namespace EMT.CWToolsImplementation
         }
 
         public SavedModData SavedData { get; set; }
-        public Dictionary<string, Dictionary<string, List<string>>> ValueRules { get; set; }
+        public Dictionary<string, Dictionary<string, List<ValueRuleData>>> ValueRules { get; set; }
         public Dictionary<string, Dictionary<string, List<string>>> NodeRules { get; set; }
+        public Dictionary<string, Dictionary<string, string>> LocalisationBindings { get; set; } // Bind directly to values later
     }
 }

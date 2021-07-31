@@ -52,10 +52,5 @@ namespace EMT.Models
         {
             Write(writer, ValueWrite.LeadingTabs | ValueWrite.NewLine);
         }
-
-        public void Select()
-        {
-            Providers.ProviderUpdater.Instance.SelectNode(this);
-        }
     }
 }

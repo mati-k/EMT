@@ -43,17 +43,62 @@ namespace EMT.Providers
 
                             if (typeField.Item.IsSimple)
                             {
-                                ValueNodeValueSuggestionProvider.Instance.Suggestions.AddRange(ConfigStorage.Instance.LocalisationBindings[(typeField.Item as TypeType.Simple).name]
-                                    .Select(t => new ValueNodeSuggestion(t.Key, t.Value)));
+                                string name = (typeField.Item as TypeType.Simple).name;
 
+                                foreach (var element in ConfigStorage.Instance.SavedData.Types[name])
+                                {
+                                    string loca = ConfigStorage.Instance.LocalisationBindings[name].GetValueOrDefault(element.id, "");
+                                    ValueNodeValueSuggestionProvider.Instance.Suggestions.Add(new ValueNodeSuggestion(element.id, loca));
+                                }
                             }
 
+                            else
+                            {
 
+                            }
+                        }
+
+                        else if (rule.Field.IsScopeField)
+                        {
+                            var scopeField = rule.Field as NewField.ScopeField;
+                            // CWTools.Common.EU4Constants.defaultScopeInputs;
+                        }
+
+                        else if (rule.Field.IsValueField)
+                        {
+                            var value = rule.Field as NewField.ValueField;
+                            
+                            if (value.Item.IsEnum)
+                            {
+                                if (value.Item.enumc.Equals("country_tags"))
+                                {
+                                    ValueNodeValueSuggestionProvider.Instance.Suggestions.AddRange(
+                                        ConfigStorage.Instance.LocalisationBindings["country_tags"].Select(l => new ValueNodeSuggestion(l.Key, l.Value)));
+                                }
+
+                                else
+                                {
+                                    ValueNodeValueSuggestionProvider.Instance.Suggestions.AddRange(
+                                        ConfigStorage.Instance.SavedData.Meta.enumDefs[value.Item.enumc].Item2.Select(e => new ValueNodeSuggestion(e, "")));
+                                }
+                            }
+
+                            else if (value.Item.IsBool)
+                            {
+                                ValueNodeValueSuggestionProvider.Instance.Suggestions.AddRange(new ValueNodeSuggestion[] {
+                                    new ValueNodeSuggestion("no", ""),
+                                    new ValueNodeSuggestion("yes", "") });
+                            }
+
+                            else
+                            {
+
+                            }
                         }
 
                         else
                         {
-
+                            //ConfigStorage.Instance.SavedData.Meta.enumDefs
                         }
                     }
                 }

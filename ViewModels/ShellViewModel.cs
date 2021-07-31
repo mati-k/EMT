@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using EMT.SharedData;
+using System.Windows.Media;
 
 namespace EMT.ViewModels
 {
@@ -162,6 +163,17 @@ namespace EMT.ViewModels
                     string rootDirectory = gfxFile;
                     while (!(rootDirectory.Equals(modFolder) || rootDirectory.Equals(vanillaFolder)))
                         rootDirectory = Directory.GetParent(rootDirectory).FullName;
+
+                    if (gfxFile.Contains("core.gfx") && !FontColors.TextColors.Any()) // skip if mod added
+                    {
+                        var colors = gfxFileData.OtherGfx.Where(b => b.Name.Equals("bitmapfonts")).First()
+                            .Nodes.Where(n => n.Name.Equals("textcolors")).First().Nodes;
+
+                        foreach (var color in colors)
+                        {
+                            FontColors.TextColors.Add(color.Name[0], new SolidColorBrush(Color.FromRgb((byte)Int32.Parse(color.Colors[0]), (byte)Int32.Parse(color.Colors[1]), (byte)Int32.Parse(color.Colors[2]))));
+                        }
+                    }
 
                     gfxFileData.Gfx.ToList().ForEach(gfx=> {
                         if (gfx.TextureFile != null && !gfxFiles.ContainsKey(gfx.Name))

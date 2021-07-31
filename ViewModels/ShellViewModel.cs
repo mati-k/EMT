@@ -164,14 +164,14 @@ namespace EMT.ViewModels
                     while (!(rootDirectory.Equals(modFolder) || rootDirectory.Equals(vanillaFolder)))
                         rootDirectory = Directory.GetParent(rootDirectory).FullName;
 
-                    if (gfxFile.Contains("core.gfx") && !FontColors.TextColors.Any()) // skip if mod added
+                    if (gfxFile.Contains("core.gfx") && !FontColors.Instance.Colors.Any()) // skip if mod added
                     {
                         var colors = gfxFileData.OtherGfx.Where(b => b.Name.Equals("bitmapfonts")).First()
                             .Nodes.Where(n => n.Name.Equals("textcolors")).First().Nodes;
 
                         foreach (var color in colors)
                         {
-                            FontColors.TextColors.Add(color.Name[0], new SolidColorBrush(Color.FromRgb((byte)Int32.Parse(color.Colors[0]), (byte)Int32.Parse(color.Colors[1]), (byte)Int32.Parse(color.Colors[2]))));
+                            FontColors.Instance.Colors.Add(new ColorKey(color.Name[0], color.Colors));
                         }
                     }
 
@@ -186,7 +186,7 @@ namespace EMT.ViewModels
                     });
                 }
             }
-
+            
             GfxStorage.Instance.GfxFiles = gfxFiles;
         }
 

@@ -6,7 +6,6 @@
              xmlns:local="clr-namespace:EMT.Views"
              xmlns:models="clr-namespace:EMT.Models"
              xmlns:cal="http://caliburnmicro.com"
-             xmlns:dd="urn:gong-wpf-dragdrop"
              xmlns:converters="clr-namespace:EMT.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -45,6 +44,10 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
+                <Label Content="Description"/>
+                <TextBox Text="{Binding Mission.Description}" TextWrapping="Wrap" VerticalAlignment="Stretch"/>
+                <local:BindableRichTextBox BindableDocument="{Binding Mission.Description, Converter={x:Static converters:RichTextBoxConverter.Default}, Mode=OneWay}" IsReadOnly="True" Focusable="False" IsHitTestVisible="False" FontWeight="Bold" Background="#FF304976"/>
+
                 <Label Content="Provinces to highlight" DataContext="{Binding Path=Mission.ProvincesToHighlight}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
                     <Label.ContextMenu>
                         <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
@@ -53,7 +56,8 @@
                         </ContextMenu>
                     </Label.ContextMenu>
                 </Label>
-                <TreeView ItemsSource="{Binding Mission.ProvincesToHighlight.Nodes}"  dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" Style="{StaticResource ScrollableTreeView}">
+                
+                <TreeView ItemsSource="{Binding Mission.ProvincesToHighlight.Nodes}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
 
                 <Label Content="Trigger" DataContext="{Binding Path=Mission.Trigger}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
@@ -64,7 +68,7 @@
                         </ContextMenu>
                     </Label.ContextMenu>
                 </Label>
-                <TreeView ItemsSource="{Binding Mission.Trigger.Nodes}"  dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" Style="{StaticResource ScrollableTreeView}">
+                <TreeView ItemsSource="{Binding Mission.Trigger.Nodes}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
 
                 <Label Content="Effect" DataContext="{Binding Path=Mission.Effect}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
@@ -75,12 +79,9 @@
                         </ContextMenu>
                     </Label.ContextMenu>
                 </Label>
-                <TreeView ItemsSource="{Binding Mission.Effect.Nodes}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}" Style="{StaticResource ScrollableTreeView}">
+                
+                <TreeView ItemsSource="{Binding Mission.Effect.Nodes}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
-
-                <Label Content="Description"/>
-                <TextBox Text="{Binding Mission.Description}" TextWrapping="Wrap" VerticalAlignment="Stretch"/>
-                <local:BindableRichTextBox BindableDocument="{Binding Mission.Description, Converter={x:Static converters:RichTextBoxConverter.Default}, Mode=OneWay}" IsReadOnly="True" Focusable="False" IsHitTestVisible="False" FontWeight="Bold" Background="#FF304976"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

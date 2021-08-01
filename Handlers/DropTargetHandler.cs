@@ -15,61 +15,106 @@ namespace EMT.Handlers
     {
         public void DragOver(IDropInfo dropInfo)
         {
-            NodeModel source = dropInfo.Data as NodeModel;
-            NodeModel target = dropInfo.TargetItem as NodeModel;
+            object source = dropInfo.Data;
+            object target = dropInfo.TargetItem;
 
-            if (source != null && target != null && !IsSelfOrChild(source, target) && source.Root == target.Root)
+            if (source == null || target == null || IsSelfOrChild(source, target))
+                return;
+
+            if (source is MissionBranchModel && target is MissionModel)
+                return;
+
+            dropInfo.Effects = System.Windows.DragDropEffects.Move;
+            var isTreeViewItem = dropInfo.InsertPosition.HasFlag(RelativeInsertPosition.TargetItemCenter) && dropInfo.VisualTargetItem is TreeViewItem;
+
+            if (source is MissionModel && target is MissionModel)
             {
-                dropInfo.Effects = System.Windows.DragDropEffects.Move;
-                var isTreeViewItem = dropInfo.InsertPosition.HasFlag(RelativeInsertPosition.TargetItemCenter) && dropInfo.VisualTargetItem is TreeViewItem;
-                dropInfo.DropTargetAdorner = (isTreeViewItem && (target is GroupNodeModel)) ? DropTargetAdorners.Highlight : DropTargetAdorners.Insert;
+                dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
+
+            }
+
+            else if (source is MissionModel && target is MissionBranchModel)
+            {
+                dropInfo.DropTargetAdorner = (isTreeViewItem) ? DropTargetAdorners.Highlight : DropTargetAdorners.Insert;
+
+            }
+
+            else if (source is MissionBranchModel && target is MissionBranchModel)
+            {
+                if (!isTreeViewItem)
+                    dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
+
             }
         }
 
         public void Drop(IDropInfo dropInfo)
         {
-            NodeModel source = dropInfo.Data as NodeModel;
-            NodeModel target = dropInfo.TargetItem as NodeModel;
-
             int insertIndex = GetInsertIndex(dropInfo);
-            int index = source.Parent.Nodes.IndexOf(source);
 
-            var desintation = dropInfo.TargetCollection as BindableCollection<NodeModel>;
+            object source = dropInfo.Data;
+            object target = dropInfo.TargetItem;
 
-            if (target.Parent == source)
-                return;
-
-            if (desintation != null)
+            if (source is MissionModel && target is MissionModel)
             {
-                if (source.Parent.Nodes == desintation)
+                var dest = dropInfo.TargetCollection as BindableCollection<MissionModel>;
+                
+                if (dest == (source as MissionModel).Branch.Missions)
                 {
-                    if (insertIndex == desintation.Count)
+                    int currentIndex = dest.IndexOf(source as MissionModel);
+                    if (currentIndex < insertIndex)
                         insertIndex--;
 
-                    desintation.Move(index, insertIndex);
+                    if (insertIndex == dest.Count)
+                        insertIndex--;
+
+                    dest.Move(dest.IndexOf(source as MissionModel), insertIndex);
                 }
 
                 else
                 {
-                    source.Parent.Nodes.RemoveAt(index);
-                    desintation.Insert(insertIndex, source);
+                    if (dest == null)
+                        dest = (target as MissionModel).Branch.Missions;
+
+                    (source as MissionModel).Branch.Missions.Remove(source as MissionModel);
+                    dest.Insert(insertIndex, source as MissionModel);
                 }
             }
 
-            else
+            else if (source is MissionModel && target is MissionBranchModel)
             {
-                source.Parent.Nodes.RemoveAt(index);
-                target.Parent.Nodes.Insert(insertIndex, source);
+                var sourceMission = source as MissionModel;
+                if (target != sourceMission.Branch)
+                {
+                    sourceMission.Branch.Missions.Remove(sourceMission);
+                    (target as MissionBranchModel).Missions.Add(sourceMission);
+                }
             }
 
-            if (target is GroupNodeModel group && group.Nodes == desintation)
+            else if (source is MissionBranchModel && target is MissionBranchModel)
             {
-                source.Parent = group;
-            }
+                var branches = (source as MissionBranchModel).MissionFile.Branches;
 
-            else
-            {
-                source.Parent = target.Parent;
+                if (dropInfo.TargetCollection is BindableCollection<MissionBranchModel>) //insert before
+                {
+                    if (branches.IndexOf(source as MissionBranchModel) < insertIndex)
+                        insertIndex--;
+
+                    branches.Move(branches.IndexOf(source as MissionBranchModel), insertIndex);
+                }
+
+                else
+                {
+                    insertIndex = branches.IndexOf(target as MissionBranchModel);
+
+                    int currentIndex = branches.IndexOf(source as MissionBranchModel);
+                    if (currentIndex < insertIndex)
+                        insertIndex--;
+
+                    if (insertIndex == branches.Count)
+                        insertIndex--;
+
+                    branches.Move(currentIndex, insertIndex);
+                }
             }
         }
 
@@ -96,15 +141,21 @@ namespace EMT.Handlers
             return insertIndex;
         }
 
-        private bool IsSelfOrChild(NodeModel source, NodeModel target)
+        private bool IsSelfOrChild(object source, object target)
         {
             if (source == target)
                 return true;
 
-            if (target.Parent == null)
-                return false;
+            if (target is MissionBranchModel && source is MissionModel)
+            {
+                MissionBranchModel targetBranch = target as MissionBranchModel;
+                MissionModel sourceMission = target as MissionModel;
 
-            return IsSelfOrChild(source, target.Parent);
+                if (targetBranch.Missions.Contains(sourceMission))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

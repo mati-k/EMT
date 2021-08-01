@@ -15,7 +15,7 @@ namespace EMT.Models
 
         public void TokenCallback(ParadoxParser parser, string token)
         {
-            Branches.Add(parser.Parse(new MissionBranchModel() { Name = token }));
+            Branches.Add(parser.Parse(new MissionBranchModel(this) { Name = token }));
         }
 
         public void Write(ParadoxStreamWriter writer)

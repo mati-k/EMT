@@ -125,6 +125,18 @@ namespace EMT.Models
             }
         }
 
+        public MissionBranchModel Branch { get; set; }
+
+        public MissionModel (MissionBranchModel branch)
+        {
+            this.Branch = branch;
+        }
+
+        public MissionModel()
+        {
+
+        }
+
         public void TokenCallback(ParadoxParser parser, string token)
         {
             switch (token)

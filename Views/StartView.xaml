@@ -48,7 +48,34 @@
                 </ContextMenu>
             </Label.ContextMenu>
         </Label>
-        <TreeView Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" ItemsSource="{Binding Source={x:Static shared:DefaultPotential.Instance}, Path=Potential.Nodes}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding DropHandler}"  Style="{StaticResource ScrollableTreeView}">
+        <TreeView Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" ItemsSource="{Binding Source={x:Static shared:DefaultPotential.Instance}, Path=Potential.Nodes}" Style="{StaticResource ScrollableTreeView}">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate ItemsSource="{Binding Nodes}" DataType="{x:Type models:GroupNodeModel}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox Text="{Binding Name}" MinWidth="50" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
+                            <TextBox.ContextMenu>
+                                <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
+                                    <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
+                                    <MenuItem Header="Remove" cal:Message.Attach="RemoveGroup($dataContext)"/>
+                                </ContextMenu>
+                            </TextBox.ContextMenu>
+                        </TextBox>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <DataTemplate DataType="{x:Type models:ValueNodeModel}">
+                    <StackPanel Orientation="Horizontal" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" Background="Transparent">
+                        <TextBox MinWidth="200" Text="{Binding Name}"/>
+                        <TextBox Text="{Binding Value}" MinWidth="200" Margin="20,0,0,0"/>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Remove" cal:Message.Attach="RemoveValue($dataContext)"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.Resources>
         </TreeView>
 
         <Button x:Name="Continue" Grid.Column="0" Grid.Row="6" Margin="0,10" Content="Continue" />

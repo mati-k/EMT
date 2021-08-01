@@ -1,7 +1,9 @@
 ﻿
 using Caliburn.Micro;
+using EMT.Handlers;
 using EMT.Models;
 using EMT.Views;
+using GongSolutions.Wpf.DragDrop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,8 @@ namespace EMT.ViewModels
         private MissionDetailsViewModel _missionDetailsViewModel;
         private BranchDetailsViewModel _branchDetailsViewModel;
         private Screen _selectedDetailsVM;
+
+        public IDropTarget DropHandler { get; } = new DropTargetHandler();
 
         public MissionTreeViewModel MissionTreeVM
         {
@@ -78,7 +82,7 @@ namespace EMT.ViewModels
 
         public void AddBranch()
         {
-            MissionFile.Branches.Add(new MissionBranchModel() { Name = "new_branch" });
+            MissionFile.Branches.Add(new MissionBranchModel(MissionFile) { Name = "new_branch" });
         }
 
         public void RemoveBranch(MissionBranchModel branch)
@@ -88,7 +92,7 @@ namespace EMT.ViewModels
 
         public void AddMission(MissionBranchModel branch)
         {
-            branch.Missions.Add(new MissionModel() { Name = "new_mission" });
+            branch.Missions.Add(new MissionModel(branch) { Name = "new_mission" });
         }
 
         public void RemoveMission(MissionModel mission)

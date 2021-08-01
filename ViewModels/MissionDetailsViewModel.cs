@@ -31,7 +31,6 @@ namespace EMT.ViewModels
         }
 
         public MissionFileModel MissionFile { get; set; }
-        public IDropTarget DropHandler { get; } = new DropTargetHandler();
 
         public MissionDetailsViewModel(IEventAggregator eventAggregator, IWindowManager windowManager)
         {

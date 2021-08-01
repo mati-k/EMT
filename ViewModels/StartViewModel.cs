@@ -41,12 +41,45 @@ namespace EMT.ViewModels
             if (!string.IsNullOrWhiteSpace(selected))
                 FilesModel.MissionFile = selected;
         }
+        public void CreateMissionFile()
+        {
+            CommonSaveFileDialog save = new CommonSaveFileDialog();
+            save.Filters.Add(new CommonFileDialogFilter("txt", ".txt"));
+            save.DefaultExtension = ".txt";
+            save.AlwaysAppendDefaultExtension = true;
+
+            if (!string.IsNullOrWhiteSpace(FilesModel.ModFolder))
+                save.InitialDirectory = Path.Combine(FilesModel.ModFolder, "missions");
+
+            if (save.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                File.Create(save.FileName);
+                FilesModel.MissionFile = save.FileName;
+            }
+        }
 
         public void SelectLocalisationFile()
         {
             string selected = SelectFile("yml File", ".yml", "localisation");
             if (!string.IsNullOrWhiteSpace(selected))
                 FilesModel.LocalisationFile = selected;
+        }
+
+        public void CreateLocalisationFile()
+        {
+            CommonSaveFileDialog save = new CommonSaveFileDialog();
+            save.Filters.Add(new CommonFileDialogFilter("yml", ".yml"));
+            save.DefaultExtension = ".yml";
+            save.AlwaysAppendDefaultExtension = true;
+
+            if (!string.IsNullOrWhiteSpace(FilesModel.ModFolder))
+                save.InitialDirectory = Path.Combine(FilesModel.ModFolder, "localisation");
+
+            if (save.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                File.Create(save.FileName);
+                FilesModel.LocalisationFile = save.FileName;
+            }
         }
 
         public void SelectVanillaFolder()

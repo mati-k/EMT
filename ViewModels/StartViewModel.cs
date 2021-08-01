@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using System.IO;
 
 namespace EMT.ViewModels
 {
@@ -36,30 +37,73 @@ namespace EMT.ViewModels
 
         public void SelectMissionFile()
         {
-            FilesModel.MissionFile = SelectFile("txt File", ".txt");
+            string selected = SelectFile("txt File", ".txt", "missions");
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.MissionFile = selected;
+        }
+        public void CreateMissionFile()
+        {
+            CommonSaveFileDialog save = new CommonSaveFileDialog();
+            save.Filters.Add(new CommonFileDialogFilter("txt", ".txt"));
+            save.DefaultExtension = ".txt";
+            save.AlwaysAppendDefaultExtension = true;
+
+            if (!string.IsNullOrWhiteSpace(FilesModel.ModFolder))
+                save.InitialDirectory = Path.Combine(FilesModel.ModFolder, "missions");
+
+            if (save.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                File.Create(save.FileName);
+                FilesModel.MissionFile = save.FileName;
+            }
         }
 
         public void SelectLocalisationFile()
         {
-            FilesModel.LocalisationFile = SelectFile("yml File", ".yml");
+            string selected = SelectFile("yml File", ".yml", "localisation");
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.LocalisationFile = selected;
+        }
+
+        public void CreateLocalisationFile()
+        {
+            CommonSaveFileDialog save = new CommonSaveFileDialog();
+            save.Filters.Add(new CommonFileDialogFilter("yml", ".yml"));
+            save.DefaultExtension = ".yml";
+            save.AlwaysAppendDefaultExtension = true;
+
+            if (!string.IsNullOrWhiteSpace(FilesModel.ModFolder))
+                save.InitialDirectory = Path.Combine(FilesModel.ModFolder, "localisation");
+
+            if (save.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                File.Create(save.FileName);
+                FilesModel.LocalisationFile = save.FileName;
+            }
         }
 
         public void SelectVanillaFolder()
         {
-            FilesModel.VanillaFolder = SelectFolder();
+            string selected = SelectFolder();
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.VanillaFolder = selected;
         }
 
         public void SelectModFolder()
         {
-            FilesModel.ModFolder = SelectFolder();
+            string selected = SelectFolder();
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.ModFolder = selected;
         }
 
-        private string SelectFile(string extensionTitle, string extension)
+        private string SelectFile(string extensionTitle, string extension, string subfolder)
         {
             CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
             openFileDialog.Multiselect = false;
-
             openFileDialog.Filters.Add(new CommonFileDialogFilter(extensionTitle, extension));
+
+            if (!string.IsNullOrWhiteSpace(FilesModel.ModFolder))
+                openFileDialog.InitialDirectory = Path.Combine(FilesModel.ModFolder, subfolder);
 
             if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
@@ -103,12 +147,13 @@ namespace EMT.ViewModels
             node.Parent.Nodes.Remove(node);
         }
 
-        public bool CanContinue(string filesModel_MissionFile, string filesModel_LocalisationFile)
+        public bool CanContinue(string filesModel_MissionFile, string filesModel_LocalisationFile, string filesModel_VanillaFolder, string filesModel_ModFolder)
         {
-            return !String.IsNullOrWhiteSpace(filesModel_MissionFile) && !String.IsNullOrWhiteSpace(filesModel_LocalisationFile);
+            return !String.IsNullOrWhiteSpace(filesModel_MissionFile) && !String.IsNullOrWhiteSpace(filesModel_LocalisationFile)
+                && !String.IsNullOrWhiteSpace(filesModel_VanillaFolder) && !String.IsNullOrWhiteSpace(filesModel_ModFolder);
         }
 
-        public void Continue(string filesModel_MissionFile, string filesModel_LocalisationFile)
+        public void Continue(string filesModel_MissionFile, string filesModel_LocalisationFile, string filesModel_VanillaFolder, string filesModel_ModFolder)
         {
             FilesModel.SaveToJson();
             _eventAggregator.PublishOnUIThreadAsync(FilesModel);

@@ -62,7 +62,7 @@ namespace EMT.Converters
                 if (i == 0)
                 {
                     range.Text = formats[i];
-                    range.ApplyPropertyValue(TextElement.ForegroundProperty, FontColors.TextColors['W']);
+                    range.ApplyPropertyValue(TextElement.ForegroundProperty, FontColors.Instance.Colors.Where(i => i.Key == 'W').First().Brush);
                     continue;
                 }
 
@@ -78,14 +78,14 @@ namespace EMT.Converters
 
                 range.Text = formats[i].Substring(1);
 
-                if (formatCharacters.Count == 0 || !FontColors.TextColors.ContainsKey(formatCharacters.Peek()))
+                if (formatCharacters.Count == 0 || !FontColors.Instance.Colors.Where(i => i.Key == formatCharacters.Peek()).Any())
                 {
-                    range.ApplyPropertyValue(TextElement.ForegroundProperty, FontColors.TextColors['W']);
+                    range.ApplyPropertyValue(TextElement.ForegroundProperty, FontColors.Instance.Colors.Where(i => i.Key == 'W').First().Brush);
                 }
 
                 else
                 {
-                    range.ApplyPropertyValue(TextElement.ForegroundProperty, FontColors.TextColors[formatCharacters.Peek()]);
+                    range.ApplyPropertyValue(TextElement.ForegroundProperty, FontColors.Instance.Colors.Where(i => i.Key == formatCharacters.Peek()).First().Brush);
                 }
             }
 

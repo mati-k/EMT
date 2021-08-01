@@ -54,7 +54,9 @@ namespace EMT
             _container.Singleton<MissionDetailsViewModel>();
             _container.Singleton<BranchDetailsViewModel>();
 
-            _container.PerRequest<GfxDialogViewModel>();
+            _container.Singleton<GfxDialogViewModel>();
+
+            _container.PerRequest<MessageDialogViewModel>();
         }
     }
 }

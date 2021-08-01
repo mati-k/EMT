@@ -12,20 +12,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using EMT.SharedData;
-using EMT.CWToolsImplementation;
+using System.Windows.Media;
 
 namespace EMT.ViewModels
 {
     public class ShellViewModel : Conductor<object>, IHandle<FilesModel>
     {
-        private FilesModel _filesModel;
         private IEventAggregator _eventAggregator;
+        private IWindowManager _windowManager;
+
         private StartViewModel _startViewModel;
         private MissionViewModel _missionViewModel;
         private MissionFileModel _missionFile;
+
         private Dictionary<string, string> _unconnectedLocalisation = new Dictionary<string, string>();
 
-        private string configPath = "cwtools-eu4-config";
+        private FilesModel _filesModel;
 
         public MissionFileModel MissionFile
         {
@@ -37,8 +39,9 @@ namespace EMT.ViewModels
             }
         }
 
-        public ShellViewModel(IEventAggregator eventAggregator, StartViewModel startViewModel, MissionViewModel missionViewModel)
+        public ShellViewModel(IEventAggregator eventAggregator, IWindowManager windowManager, StartViewModel startViewModel, MissionViewModel missionViewModel)
         {
+            _windowManager = windowManager;
             _eventAggregator = eventAggregator;
             _eventAggregator.SubscribeOnPublishedThread(this);
 
@@ -61,12 +64,15 @@ namespace EMT.ViewModels
                 {
                     MissionFile.Write(writer);
                 }
+
                 File.Delete(backupName);
             } 
             
             catch (Exception e)
             {
-
+                MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
+                dialog.Message = "Error when saving mission file";
+                _windowManager.ShowDialogAsync(dialog);
             }
 
             backupName = _filesModel.LocalisationFile;
@@ -89,7 +95,9 @@ namespace EMT.ViewModels
             }
             catch (Exception e)
             {
-
+                MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
+                dialog.Message = "Error when saving localisation file";
+                _windowManager.ShowDialogAsync(dialog);
             }
         }
 
@@ -140,10 +148,7 @@ namespace EMT.ViewModels
                         _unconnectedLocalisation.Add(key, localisation[key]);
                 }
             }
-
-            LoadConfig(message.VanillaFolder, message.ModFolder);
             LoadGfx(message.VanillaFolder, message.ModFolder);
-            BindLocalisation(message.VanillaFolder, message.ModFolder);
 
             MissionFile = missionFileModel;
             _eventAggregator.PublishOnUIThreadAsync(missionFileModel);
@@ -151,23 +156,11 @@ namespace EMT.ViewModels
             return ActivateItemAsync(_missionViewModel, CancellationToken.None);
         }
 
-        private void LoadConfig(string vanillaFolder, string modFolder)
-        {
-            DataLoader dataLoader = new DataLoader(vanillaFolder, modFolder);
-            dataLoader.Load();
-
-            RuleParser parser = new RuleParser(dataLoader.SavedData, dataLoader.Rules);
-            parser.Parse();
-
-            ConfigStorage.Instance.SavedData = dataLoader.SavedData;
-            ConfigStorage.Instance.ValueRules = parser.ValueRules;
-            ConfigStorage.Instance.NodeRules = parser.NodeRules;
-        }
 
         private void LoadGfx(string vanillaFolder, string modFolder)
         {
             Dictionary<string, string> gfxFiles = new Dictionary<string, string>();
-            List<string> files = CWTools.Utilities.Utils.getAllFoldersUnion(new List<string>() { Path.Combine(modFolder, "interface"), Path.Combine(vanillaFolder, "interface") })
+            List<string> files = GetAllFolderAndSubfolders(new List<string>() { Path.Combine(modFolder, "interface"), Path.Combine(vanillaFolder, "interface") })
                                 .SelectMany(folder => Directory.EnumerateFiles(folder)).Where(f => Path.GetExtension(f).Equals(".gfx")).ToList();
 
             foreach (string gfxFile in files)
@@ -178,6 +171,17 @@ namespace EMT.ViewModels
                     string rootDirectory = gfxFile;
                     while (!(rootDirectory.Equals(modFolder) || rootDirectory.Equals(vanillaFolder)))
                         rootDirectory = Directory.GetParent(rootDirectory).FullName;
+
+                    if (gfxFile.Contains("core.gfx") && !FontColors.Instance.Colors.Any()) // skip if mod added
+                    {
+                        var colors = gfxFileData.OtherGfx.Where(b => b.Name.Equals("bitmapfonts")).First()
+                            .Nodes.Where(n => n.Name.Equals("textcolors")).First().Nodes;
+
+                        foreach (var color in colors)
+                        {
+                            FontColors.Instance.Colors.Add(new ColorKey(color.Name[0], color.Colors));
+                        }
+                    }
 
                     gfxFileData.Gfx.ToList().ForEach(gfx=> {
                         if (gfx.TextureFile != null && !gfxFiles.ContainsKey(gfx.Name))
@@ -190,56 +194,26 @@ namespace EMT.ViewModels
                     });
                 }
             }
-
+            
             GfxStorage.Instance.GfxFiles = gfxFiles;
         }
 
-        private void BindLocalisation(string vanillaFolder, string modFolder)
+        private List<string> GetAllFolderAndSubfolders(List<string> rootFolders)
         {
-            Dictionary<string, string> tempLoca = new Dictionary<string, string>();
-            ConfigStorage.Instance.LocalisationBindings = new Dictionary<string, Dictionary<string, string>>();
+            List<string> folders = new List<string>();
 
-            List<string> files = CWTools.Utilities.Utils.getAllFoldersUnion(new List<string>() { Path.Combine(modFolder, "localisation"), Path.Combine(vanillaFolder, "localisation") })
-                                .SelectMany(folder => Directory.EnumerateFiles(folder)).Where(f => Path.GetExtension(f).Equals(".yml")).ToList();
-
-            foreach (string locFile in files)
+            foreach (string folder in rootFolders)
             {
-                using (FileStream fileStream = new FileStream(locFile, FileMode.Open))
+                folders.Add(folder);
+
+                List<string> subDirectories = Directory.GetDirectories(folder).ToList();
+                if (subDirectories.Count > 0)
                 {
-                    var loca = Localisation.Read(new StreamReader(fileStream));
-                    loca.ForEach(keyValue =>
-                    {
-                        if (!tempLoca.ContainsKey(keyValue.Item1))
-                            tempLoca.Add(keyValue.Item1, keyValue.Item2);
-                    });
+                    folders.AddRange(GetAllFolderAndSubfolders(subDirectories));
                 }
             }
-            foreach (var type in ConfigStorage.Instance.SavedData.Types)
-            {
-                Dictionary<string, string> typeLoca = new Dictionary<string, string>();
 
-                foreach (var val in type.Value)
-                {
-                    if (val.explicitLocalisation.Length > 0 && tempLoca.ContainsKey(val.explicitLocalisation[0].Item2))
-                        typeLoca.Add(val.id, val.explicitLocalisation[0].Item2);
-                    else if (ConfigStorage.Instance.SavedData.TypeLoca.ContainsKey(type.Key))
-                    {
-                        string key = ConfigStorage.Instance.SavedData.TypeLoca[type.Key].Replace("$", val.id);
-                        if (tempLoca.ContainsKey(key) && !typeLoca.ContainsKey(val.id))
-                            typeLoca.Add(val.id, tempLoca[key]);
-                    }
-                }
-
-                ConfigStorage.Instance.LocalisationBindings.Add(type.Key, typeLoca);
-            }
-
-            Dictionary<string, string> countryTags = new Dictionary<string, string>();
-            foreach (var tag in ConfigStorage.Instance.SavedData.Meta.enumDefs["country_tags"].Item2)
-            {
-                if (tempLoca.ContainsKey(tag))
-                    countryTags.Add(tag, tempLoca[tag]);
-            }
-            ConfigStorage.Instance.LocalisationBindings.Add("country_tags", countryTags);
+            return folders;
         }
     }
 }

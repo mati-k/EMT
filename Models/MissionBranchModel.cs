@@ -84,6 +84,13 @@ namespace EMT.Models
             }
         }
 
+        public MissionFileModel MissionFile { get; set; }
+
+        public MissionBranchModel(MissionFileModel missionFile)
+        {
+            this.MissionFile = missionFile;
+        }
+
         public void TokenCallback(ParadoxParser parser, string token)
         {
             switch (token)
@@ -93,7 +100,7 @@ namespace EMT.Models
                 case "ai": AI = parser.ReadBool(); break;
                 case "potential": Potential = parser.Parse(new GroupNodeModel() { Name = "potential" }); break;
                 case "has_country_shield": CountryShield = parser.ReadBool(); break;
-                default: Missions.Add(parser.Parse(new MissionModel() { Name = token })); break;
+                default: Missions.Add(parser.Parse(new MissionModel(this) { Name = token })); break;
             }
         }
 

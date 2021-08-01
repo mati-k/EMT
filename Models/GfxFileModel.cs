@@ -10,10 +10,12 @@ namespace EMT.Models
     public class GfxFileModel : IParadoxRead
     {
         public IList<GfxModel> Gfx { get; set; }
+        public IList<GFXOther> OtherGfx { get; set; }
 
         public GfxFileModel()
         {
             Gfx = new List<GfxModel>();
+            OtherGfx = new List<GFXOther>();
         }
 
         public void TokenCallback(ParadoxParser parser, string token)
@@ -23,6 +25,8 @@ namespace EMT.Models
 
             if (token.Equals("spriteType"))
                 Gfx.Add(parser.Parse(new GfxModel()));
+            else if (!token.Equals("spriteTypes"))
+                OtherGfx.Add(parser.Parse(new GFXOther(token, null)));
         }
     }
 }

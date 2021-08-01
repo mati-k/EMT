@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using System.IO;
 
 namespace EMT.ViewModels
 {
@@ -36,30 +37,40 @@ namespace EMT.ViewModels
 
         public void SelectMissionFile()
         {
-            FilesModel.MissionFile = SelectFile("txt File", ".txt");
+            string selected = SelectFile("txt File", ".txt", "missions");
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.MissionFile = selected;
         }
 
         public void SelectLocalisationFile()
         {
-            FilesModel.LocalisationFile = SelectFile("yml File", ".yml");
+            string selected = SelectFile("yml File", ".yml", "localisation");
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.LocalisationFile = selected;
         }
 
         public void SelectVanillaFolder()
         {
-            FilesModel.VanillaFolder = SelectFolder();
+            string selected = SelectFolder();
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.VanillaFolder = selected;
         }
 
         public void SelectModFolder()
         {
-            FilesModel.ModFolder = SelectFolder();
+            string selected = SelectFolder();
+            if (!string.IsNullOrWhiteSpace(selected))
+                FilesModel.ModFolder = selected;
         }
 
-        private string SelectFile(string extensionTitle, string extension)
+        private string SelectFile(string extensionTitle, string extension, string subfolder)
         {
             CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
             openFileDialog.Multiselect = false;
-
             openFileDialog.Filters.Add(new CommonFileDialogFilter(extensionTitle, extension));
+
+            if (!string.IsNullOrWhiteSpace(FilesModel.ModFolder))
+                openFileDialog.InitialDirectory = Path.Combine(FilesModel.ModFolder, subfolder);
 
             if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {

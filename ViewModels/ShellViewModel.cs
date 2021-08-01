@@ -18,14 +18,16 @@ namespace EMT.ViewModels
 {
     public class ShellViewModel : Conductor<object>, IHandle<FilesModel>
     {
-        private FilesModel _filesModel;
         private IEventAggregator _eventAggregator;
+        private IWindowManager _windowManager;
+
         private StartViewModel _startViewModel;
         private MissionViewModel _missionViewModel;
         private MissionFileModel _missionFile;
+
         private Dictionary<string, string> _unconnectedLocalisation = new Dictionary<string, string>();
 
-        private string configPath = "cwtools-eu4-config";
+        private FilesModel _filesModel;
 
         public MissionFileModel MissionFile
         {
@@ -37,8 +39,9 @@ namespace EMT.ViewModels
             }
         }
 
-        public ShellViewModel(IEventAggregator eventAggregator, StartViewModel startViewModel, MissionViewModel missionViewModel)
+        public ShellViewModel(IEventAggregator eventAggregator, IWindowManager windowManager, StartViewModel startViewModel, MissionViewModel missionViewModel)
         {
+            _windowManager = windowManager;
             _eventAggregator = eventAggregator;
             _eventAggregator.SubscribeOnPublishedThread(this);
 
@@ -61,12 +64,15 @@ namespace EMT.ViewModels
                 {
                     MissionFile.Write(writer);
                 }
+
                 File.Delete(backupName);
             } 
             
             catch (Exception e)
             {
-
+                MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
+                dialog.Message = "Error when saving mission file";
+                _windowManager.ShowDialogAsync(dialog);
             }
 
             backupName = _filesModel.LocalisationFile;
@@ -89,7 +95,9 @@ namespace EMT.ViewModels
             }
             catch (Exception e)
             {
-
+                MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
+                dialog.Message = "Error when saving localisation file";
+                _windowManager.ShowDialogAsync(dialog);
             }
         }
 

@@ -147,12 +147,13 @@ namespace EMT.ViewModels
             node.Parent.Nodes.Remove(node);
         }
 
-        public bool CanContinue(string filesModel_MissionFile, string filesModel_LocalisationFile)
+        public bool CanContinue(string filesModel_MissionFile, string filesModel_LocalisationFile, string filesModel_VanillaFolder, string filesModel_ModFolder)
         {
-            return !String.IsNullOrWhiteSpace(filesModel_MissionFile) && !String.IsNullOrWhiteSpace(filesModel_LocalisationFile);
+            return !String.IsNullOrWhiteSpace(filesModel_MissionFile) && !String.IsNullOrWhiteSpace(filesModel_LocalisationFile)
+                && !String.IsNullOrWhiteSpace(filesModel_VanillaFolder) && !String.IsNullOrWhiteSpace(filesModel_ModFolder);
         }
 
-        public void Continue(string filesModel_MissionFile, string filesModel_LocalisationFile)
+        public void Continue(string filesModel_MissionFile, string filesModel_LocalisationFile, string filesModel_VanillaFolder, string filesModel_ModFolder)
         {
             FilesModel.SaveToJson();
             _eventAggregator.PublishOnUIThreadAsync(FilesModel);

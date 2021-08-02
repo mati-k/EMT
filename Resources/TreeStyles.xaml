@@ -36,4 +36,8 @@
             <TextBlock Text="{Binding Value}" Margin="25, 0"/>
         </StackPanel>
     </DataTemplate>
+
+    <Style TargetType="{x:Type Paragraph}">
+        <Setter Property="Margin" Value="0" />
+    </Style>
 </ResourceDictionary>

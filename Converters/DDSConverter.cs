@@ -53,9 +53,7 @@ namespace EMT.Converters
 
             using (var image = Pfim.Pfim.FromFile(filePath))
             {
-                PixelFormat format = PixelFormats.Bgra32;
-                if (image.Format == ImageFormat.Rgb24)
-                    format = PixelFormats.Rgb24;
+                PixelFormat format = PixelFormat(image);
 
                 try
                 {
@@ -67,6 +65,27 @@ namespace EMT.Converters
                 {
                     return null;
                 }
+            }
+        }
+
+        private static PixelFormat PixelFormat(IImage image)
+        {
+            switch (image.Format)
+            {
+                case ImageFormat.Rgb24:
+                    return PixelFormats.Bgr24;
+                case ImageFormat.Rgba32:
+                    return PixelFormats.Bgra32;
+                case ImageFormat.Rgb8:
+                    return PixelFormats.Gray8;
+                case ImageFormat.R5g5b5a1:
+                    return PixelFormats.Bgr555;
+                case ImageFormat.R5g5b5:
+                    return PixelFormats.Bgr555;
+                case ImageFormat.R5g6b5:
+                    return PixelFormats.Bgr565;
+                default:
+                    throw new Exception($"Unable to convert {image.Format} to WPF PixelFormat");
             }
         }
     }

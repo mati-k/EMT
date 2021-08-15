@@ -1,4 +1,5 @@
 ﻿using Caliburn.Micro;
+using EMT.Exceptions;
 using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,9 @@ namespace EMT.Models
         {
             foreach (MissionBranchModel branch in Branches)
             {
+                if (String.IsNullOrWhiteSpace(branch.Name))
+                    throw new BranchNameException();
+
                 writer.WriteLine(branch.Name + " = {");
                 branch.Write(writer);
                 writer.WriteLine("}");

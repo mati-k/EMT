@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EMT.SharedData;
+using EMT.Exceptions;
 
 namespace EMT.Models
 {
@@ -14,8 +15,8 @@ namespace EMT.Models
         private string _name;
         private int _position = 1;
         private int _realPosition;
-        private string _title;
-        private string _description;
+        private string _title = "";
+        private string _description = "";
         private string _icon;
         private NodeModel _provincesToHighlight = new GroupNodeModel() { Name = "provinces_to_highlight" };
         private NodeModel _trigger = new GroupNodeModel() { Name = "trigger" };
@@ -152,7 +153,12 @@ namespace EMT.Models
 
         public void Write(ParadoxStreamWriter writer)
         {
+            if (String.IsNullOrWhiteSpace(Icon))
+                throw new IconException(Name);
             writer.WriteLine("icon", Icon, ValueWrite.LeadingTabs);
+
+            if (Position <= 0)
+                throw new WrongPositionException(string.Format("Position must be greater than 0, mission: {0}", Name));
             writer.WriteLine("position", Position.ToString(), ValueWrite.LeadingTabs);
 
             RequiredMissions = new BindableCollection<MissionModel>(RequiredMissions.Where(mission => !String.IsNullOrWhiteSpace(mission.Name)));

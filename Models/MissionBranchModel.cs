@@ -1,4 +1,5 @@
 ﻿using Caliburn.Micro;
+using EMT.Exceptions;
 using EMT.SharedData;
 using Pdoxcl2Sharp;
 using System;
@@ -106,6 +107,9 @@ namespace EMT.Models
 
         public void Write(ParadoxStreamWriter writer)
         {
+            if (Slot <= 0)
+                throw new WrongPositionException(string.Format("Slot must be greater than 0, branch: {0}", Name));
+
             writer.WriteLine("slot", Slot.ToString(), ValueWrite.LeadingTabs);
             writer.WriteLine("generic", BoolToString(Generic), ValueWrite.LeadingTabs);
             writer.WriteLine("ai", BoolToString(AI), ValueWrite.LeadingTabs);
@@ -116,6 +120,9 @@ namespace EMT.Models
 
             foreach (MissionModel mission in Missions)
             {
+                if (String.IsNullOrWhiteSpace(mission.Name))
+                    throw new MissionNameException(Name);
+
                 writer.WriteLine(mission.Name + " = {", ValueWrite.LeadingTabs);
                 mission.Write(writer);
                 writer.WriteLine("}", ValueWrite.LeadingTabs);

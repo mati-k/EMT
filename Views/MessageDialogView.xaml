@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EMT.Views"
         mc:Ignorable="d"
-        Title="" Height="100" Width="200">
+        Title="" Height="150" Width="300">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"/>
@@ -13,10 +13,11 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="*" />
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         
         <TextBlock Text="{Binding Message}" Grid.ColumnSpan="2"/>
-        <Button x:Name="Ok" Grid.Row="1" Grid.Column="0" Content="Ok" Margin="0,10"/>
+        <Button x:Name="Ok" Grid.Row="2" Grid.Column="0" Content="Ok" Width="70" VerticalAlignment="Bottom" Margin="0,10"/>
     </Grid>
 </Window>

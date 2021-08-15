@@ -69,17 +69,17 @@ namespace EMT.ViewModels
                 {
                     MissionFile.Write(writer);
                 }
-
-                File.Delete(backupName);
             } 
             
             catch (Exception e)
             {
                 MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
-                dialog.Message = "Error when saving mission file";
+                dialog.Message = "Error when saving mission file\nCheck errror log for more information";
+                File.Copy(backupName, _filesModel.MissionFile, true);
                 _windowManager.ShowDialogAsync(dialog);
                 log.Error("Mission saving error", e);
             }
+             File.Delete(backupName);
 
             backupName = _filesModel.LocalisationFile;
             while (File.Exists(backupName))
@@ -97,16 +97,17 @@ namespace EMT.ViewModels
                         writer.WriteLine(" {0}:0 \"{1}\"", key, _unconnectedLocalisation[key]);
                     }
                 }
-                File.Delete(backupName);
             }
             catch (Exception e)
             {
                 MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
-                dialog.Message = "Error when saving localisation file";
+                dialog.Message = "Error when saving localisation file\nCheck errror log for more information";
+                File.Copy(backupName, _filesModel.LocalisationFile, true);
                 _windowManager.ShowDialogAsync(dialog);
 
                 log.Error("Localisation saving error", e);
             }
+             File.Delete(backupName);
         }
 
         public Task HandleAsync(FilesModel message, CancellationToken cancellationToken)
@@ -141,6 +142,11 @@ namespace EMT.ViewModels
             catch (Exception e)
             {
                 log.Error("Loading mission file", e);
+
+                MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
+                dialog.Message = "Error loading mission file, check error log";
+                _windowManager.ShowDialogAsync(dialog);
+
                 return Task.CompletedTask;
             }
 
@@ -186,6 +192,11 @@ namespace EMT.ViewModels
             catch (Exception e)
             {
                 log.Error("Loading localisation file", e);
+
+                MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
+                dialog.Message = "Error loading localisation file, check error log";
+                _windowManager.ShowDialogAsync(dialog);
+
                 return Task.CompletedTask;
             }
 

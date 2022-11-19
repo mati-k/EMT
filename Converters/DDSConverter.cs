@@ -51,20 +51,25 @@ namespace EMT.Converters
             if (!File.Exists(filePath))
                 return null;
 
-            using (var image = Pfim.Pfim.FromFile(filePath))
+            try
             {
-                PixelFormat format = PixelFormat(image);
-
-                try
+                using (var image = Pfim.Pfim.FromFile(filePath))
                 {
-                    var data = Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
-                    return BitmapSource.Create(image.Width, image.Height, 0, 0, format, null, data, image.Data.Length, image.Stride);
-                }
+                    PixelFormat format = PixelFormat(image);
 
-                catch (Exception e)
-                {
-                    return null;
+                    try
+                    {
+                        var data = Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
+                        return BitmapSource.Create(image.Width, image.Height, 0, 0, format, null, data, image.Data.Length, image.Stride);
+                    }
+
+                    catch (Exception e)
+                    {
+                        return null;
+                    }
                 }
+            } catch (Exception e) {
+                return null;
             }
         }
 

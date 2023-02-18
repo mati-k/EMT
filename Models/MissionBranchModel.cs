@@ -94,14 +94,21 @@ namespace EMT.Models
 
         public void TokenCallback(ParadoxParser parser, string token)
         {
-            switch (token)
+            try
             {
-                case "slot": Slot = parser.ReadInt32(); break;
-                case "generic": Generic = parser.ReadBool(); break;
-                case "ai": AI = parser.ReadBool(); break;
-                case "potential": Potential = parser.Parse(new GroupNodeModel() { Name = "potential" }); break;
-                case "has_country_shield": CountryShield = parser.ReadBool(); break;
-                default: Missions.Add(parser.Parse(new MissionModel(this) { Name = token })); break;
+                switch (token)
+                {
+                    case "slot": Slot = parser.ReadInt32(); break;
+                    case "generic": Generic = parser.ReadBool(); break;
+                    case "ai": AI = parser.ReadBool(); break;
+                    case "potential": Potential = parser.Parse(new GroupNodeModel() { Name = "potential" }); break;
+                    case "has_country_shield": CountryShield = parser.ReadBool(); break;
+                    default: Missions.Add(parser.Parse(new MissionModel(this) { Name = token })); break;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Mission branch exception, branch: {Name}  , token: {token} \n{e}");
             }
         }
 

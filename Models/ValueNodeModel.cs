@@ -11,6 +11,7 @@ namespace EMT.Models
     public class ValueNodeModel : NodeModel
     {
         private string _value;
+        private bool _quoted;
 
         public string Value
         {
@@ -38,7 +39,7 @@ namespace EMT.Models
 
         public override void Write(ParadoxStreamWriter writer, ValueWrite valueWrite)
         {
-            if (Name.Contains("name"))
+            if (Name.Contains("name") || Name.Contains("has_dlc"))
                 valueWrite = valueWrite | ValueWrite.Quoted;
             writer.Write(Name, Value, valueWrite);
         }

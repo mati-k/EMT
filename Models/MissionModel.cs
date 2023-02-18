@@ -140,14 +140,21 @@ namespace EMT.Models
 
         public void TokenCallback(ParadoxParser parser, string token)
         {
-            switch (token)
+            try
             {
-                case "position": Position = parser.ReadInt32(); break;
-                case "icon": Icon = parser.ReadString(); break;
-                case "required_missions": RequiredMissions = new BindableCollection<MissionModel>(parser.ReadStringList().Select(name => new MissionModel() { Name = name })); break;
-                case "provinces_to_highlight": ProvincesToHighlight = parser.Parse(new GroupNodeModel() { Name = "provinces_to_highlight" }); break;
-                case "trigger": Trigger = parser.Parse(new GroupNodeModel() { Name = "trigger" }); break;
-                case "effect": Effect = parser.Parse(new GroupNodeModel() { Name = "effect" }); break;
+                switch (token)
+                {
+                    case "position": Position = parser.ReadInt32(); break;
+                    case "icon": Icon = parser.ReadString(); break;
+                    case "required_missions": RequiredMissions = new BindableCollection<MissionModel>(parser.ReadStringList().Select(name => new MissionModel() { Name = name })); break;
+                    case "provinces_to_highlight": ProvincesToHighlight = parser.Parse(new GroupNodeModel() { Name = "provinces_to_highlight" }); break;
+                    case "trigger": Trigger = parser.Parse(new GroupNodeModel() { Name = "trigger" }); break;
+                    case "effect": Effect = parser.Parse(new GroupNodeModel() { Name = "effect" }); break;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Mission exception, mission: {Name}  , token: {token} \n{e}");
             }
         }
 

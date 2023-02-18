@@ -23,5 +23,11 @@ namespace EMT.Views
         {
             InitializeComponent();
         }
+
+        private void FilterKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                FilterTextBox.GetBindingExpression(TextBox.TextProperty).UpdateSource();
+        }
     }
 }

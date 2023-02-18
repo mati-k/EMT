@@ -19,8 +19,8 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-            <ListView Grid.ColumnSpan="3" SelectedItem="{Binding SelectedIcon}" SelectionMode="Single" ItemsSource="{Binding GfxFiles}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
-                <ListView.ItemsPanel>
+        <ListView Grid.ColumnSpan="3" SelectedItem="{Binding SelectedIcon}" SelectionMode="Single" ItemsSource="{Binding FilteredGfxFiles}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
@@ -41,5 +41,6 @@
             </ListView>
         <Button x:Name="Ok" Content="Ok" Grid.Row="1" Grid.Column="0" Margin="5"/>
         <Button x:Name="Cancel" Content="Cancel" Grid.Row="1" Grid.Column="1" Margin="5" />
+        <TextBox x:Name="FilterTextBox" Text="{Binding FilterText}" Grid.Row="1" Grid.Column="2" Margin="5" KeyDown="FilterKeyDown"/>
     </Grid>
 </Window>

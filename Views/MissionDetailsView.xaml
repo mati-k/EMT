@@ -48,38 +48,16 @@
                 <TextBox Text="{Binding Mission.Description}" TextWrapping="Wrap" VerticalAlignment="Stretch"/>
                 <local:BindableRichTextBox BindableDocument="{Binding Mission.Description, Converter={x:Static converters:RichTextBoxConverter.Default}, Mode=OneWay}" IsReadOnly="True" Focusable="False" IsHitTestVisible="False" FontWeight="Bold" Background="#FF304976"/>
 
-                <Label Content="Provinces to highlight" DataContext="{Binding Path=Mission.ProvincesToHighlight}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
-                    <Label.ContextMenu>
-                        <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
-                            <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
-                        </ContextMenu>
-                    </Label.ContextMenu>
-                </Label>
-                
+                <Label Content="Provinces to highlight" DataContext="{Binding Path=Mission.ProvincesToHighlight}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}" />
+
                 <TreeView ItemsSource="{Binding Mission.ProvincesToHighlight.Nodes}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
 
-                <Label Content="Trigger" DataContext="{Binding Path=Mission.Trigger}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
-                    <Label.ContextMenu>
-                        <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
-                            <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
-                        </ContextMenu>
-                    </Label.ContextMenu>
-                </Label>
+                <Label Content="Trigger" DataContext="{Binding Path=Mission.Trigger}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}" />
                 <TreeView ItemsSource="{Binding Mission.Trigger.Nodes}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
 
-                <Label Content="Effect" DataContext="{Binding Path=Mission.Effect}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}">
-                    <Label.ContextMenu>
-                        <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Add single" cal:Message.Attach="AddValue($dataContext)"/>
-                            <MenuItem Header="Add group" cal:Message.Attach="AddGroup($dataContext)"/>
-                        </ContextMenu>
-                    </Label.ContextMenu>
-                </Label>
-                
+                <Label Content="Effect" DataContext="{Binding Path=Mission.Effect}" Tag="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}" />
                 <TreeView ItemsSource="{Binding Mission.Effect.Nodes}" Style="{StaticResource ScrollableTreeView}">
                 </TreeView>
             </StackPanel>

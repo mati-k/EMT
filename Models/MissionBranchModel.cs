@@ -18,6 +18,7 @@ namespace EMT.Models
         private bool _ai = true;
         private bool _countryShield = true;
         private NodeModel _potential = DefaultPotential.Instance.Potential.Copy();
+        private NodeModel _potentialOnLoad;
         private bool _isActive = true;
 
         public string Name
@@ -74,6 +75,15 @@ namespace EMT.Models
                 NotifyOfPropertyChange(() => Potential);
             }
         }
+        public NodeModel PotentialOnLoad
+        {
+            get { return _potentialOnLoad; }
+            set
+            {
+                _potentialOnLoad = value;
+                NotifyOfPropertyChange(() => PotentialOnLoad);
+            }
+        }
         public BindableCollection<MissionModel> Missions { get; set; } = new BindableCollection<MissionModel>();
         public bool IsActive
         {
@@ -102,6 +112,7 @@ namespace EMT.Models
                     case "generic": Generic = parser.ReadBool(); break;
                     case "ai": AI = parser.ReadBool(); break;
                     case "potential": Potential = parser.Parse(new GroupNodeModel() { Name = "potential" }); break;
+                    case "potential_on_load": PotentialOnLoad = parser.Parse(new GroupNodeModel() { Name = "potential_on_load" }); break;
                     case "has_country_shield": CountryShield = parser.ReadBool(); break;
                     default: Missions.Add(parser.Parse(new MissionModel(this) { Name = token })); break;
                 }
@@ -123,6 +134,11 @@ namespace EMT.Models
             writer.WriteLine("has_country_shield", BoolToString(CountryShield), ValueWrite.LeadingTabs);
 
             Potential.Write(writer);
+            if (PotentialOnLoad != null)
+            {
+                PotentialOnLoad.Write(writer);
+            }
+
             writer.WriteLine();
 
             foreach (MissionModel mission in Missions)

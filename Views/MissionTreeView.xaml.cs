@@ -101,7 +101,7 @@ namespace EMT.Views
                 int max = mission.Position;
                 foreach (MissionModel required in mission.RequiredMissions)
                 {
-                    if (missions.ContainsKey(required.Name))
+                    if (missions.ContainsKey(required.Name) && !MissionModel.IsRequirementLoop(required.Name, missions))
                     {
                         if (!missions[required.Name].Item2)
                             RecalculateRealPosition(missions[required.Name].Item1, missions);

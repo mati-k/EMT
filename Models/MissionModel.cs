@@ -3,8 +3,6 @@ using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EMT.SharedData;
 using EMT.Exceptions;
 
@@ -202,6 +200,41 @@ namespace EMT.Models
             if (Effect == null)
                 Effect = new GroupNodeModel() { Name = "effect" };
             Effect.Write(writer);
+        }
+
+        private static bool IsRequirementLoopDFS(string startMission, HashSet<string> visisted, HashSet<string> currentPath, Dictionary<string, Tuple<MissionModel, bool>> missions)
+        {
+            // We're still on path including this mission, loop found
+            if (currentPath.Contains(startMission)) { return true; }
+
+            // Path of this mission was already checked on different path, skip
+            if (visisted.Contains(startMission)) { return false; }
+
+            if (missions.ContainsKey(startMission))
+            {
+               currentPath.Add(startMission);  
+               visisted.Add(startMission);
+                
+
+               MissionModel mission = missions[startMission].Item1;
+
+               foreach (MissionModel requirement in mission.RequiredMissions)
+               {
+                    if (IsRequirementLoopDFS(requirement.Name, visisted, currentPath, missions)) { return true; }
+               }
+            }
+
+            currentPath.Remove(startMission);
+            return false;
+        }
+
+        public static bool IsRequirementLoop(string missionName, Dictionary<string, Tuple<MissionModel, bool>> missions)
+        {
+            HashSet<string> visited = new HashSet<string>();
+            HashSet<string> currentPath = new HashSet<string>();
+
+
+            return IsRequirementLoopDFS(missionName, visited, currentPath, missions);
         }
     }
 }

@@ -1,10 +1,4 @@
-﻿using EMT.Converters;
-using Pdoxcl2Sharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Pdoxcl2Sharp;
 
 namespace EMT.Models
 {
@@ -39,8 +33,9 @@ namespace EMT.Models
 
         public override void Write(ParadoxStreamWriter writer, ValueWrite valueWrite)
         {
-            if (Name.Contains("name") || Name.Contains("has_dlc"))
+            if (Name.Contains("name") || Name.Contains("has_dlc") || Value.Trim().Contains(' '))
                 valueWrite = valueWrite | ValueWrite.Quoted;
+
             writer.Write(Name, Value, valueWrite);
         }
     }

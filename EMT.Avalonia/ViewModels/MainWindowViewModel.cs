@@ -41,18 +41,10 @@ namespace EMT.ViewModels
 
         private async Task MoveToEditor(ConfigData config)
         {
-            string? modInterface = PathHelper.ResolveCaseInsensitive(config.ModFolder, "interface");
-            string? vanillaInterface = PathHelper.ResolveCaseInsensitive(config.VanillaFolder, "interface");
-
-            if (modInterface == null)
+            // Mod doesn't need its own interface folder, it may use only vanilla icons
+            if (!GamePaths.IsGameFolder(config.VanillaFolder))
             {
-                await ShowInfo("Mod folder doesn't have interface folder");
-                return;
-            }
-
-            if (vanillaInterface == null)
-            {
-                await ShowInfo("Vanilla folder doesn't have interface folder");
+                await ShowInfo("Game folder doesn't look right, it should contain interface and missions folders");
                 return;
             }
 

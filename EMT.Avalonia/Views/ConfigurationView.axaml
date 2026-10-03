@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:DataType="vm:ConfigurationViewModel"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="EMT.Views.ConfigurationView">
@@ -11,45 +12,125 @@
     <vm:ConfigurationViewModel />
   </Design.DataContext>
 
+  <UserControl.Styles>
+    <!-- Question mark with explanation next to section titles -->
+    <Style Selector="Panel.help">
+      <Setter Property="Width" Value="22"/>
+      <Setter Property="Height" Value="22"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Panel.help materialIcons|MaterialIcon">
+      <Setter Property="Width" Value="22"/>
+      <Setter Property="Height" Value="22"/>
+    </Style>
+    <Style Selector="TextBlock.path">
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="*,Auto">
     <ScrollViewer Grid.Row="0">
-      <StackPanel HorizontalAlignment="Center" Margin="24" Spacing="12" MinWidth="700">
+      <StackPanel HorizontalAlignment="Center" Margin="24" Spacing="12" Width="760">
+
         <controls:Card Padding="16">
           <StackPanel Spacing="6">
-            <TextBlock Text="Mission File" Classes="Headline6"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Game Folder" Classes="Headline6"/>
+              <Panel Classes="help">
+                <materialIcons:MaterialIcon Kind="QuestionMarkCircleOutline"/>
+                <ToolTip.Tip>
+                  <TextBlock>
+                    Your Europa Universalis IV installation, for example<LineBreak/>
+                    - Steam\steamapps\common\Europa Universalis IV (Windows)<LineBreak/>
+                    - ~/.local/share/Steam/steamapps/common/Europa Universalis IV (Linux)<LineBreak/>
+                    - ~/Library/Application Support/Steam/steamapps/common/Europa Universalis IV (macOS)<LineBreak/>
+                    <LineBreak/>
+                    Vanilla mission icons, the mission frame, arrows and text colours are taken from it.
+                  </TextBlock>
+                </ToolTip.Tip>
+              </Panel>
+            </StackPanel>
+            <Button Content="Pick folder" Click="VanillaFolder_Click" Width="160" HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding VanillaFolder}" Classes="path"/>
+            <TextBlock Text="Found automatically in your Steam library" Classes="hint" IsVisible="{Binding VanillaFolderDetected}"/>
+            <TextBlock Text="{Binding VanillaFolderWarning}" Classes="hint" Foreground="#FFC62828" Opacity="1"
+                       IsVisible="{Binding VanillaFolderWarning, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+          </StackPanel>
+        </controls:Card>
+
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Mod Folder" Classes="Headline6"/>
+              <Panel Classes="help">
+                <materialIcons:MaterialIcon Kind="QuestionMarkCircleOutline"/>
+                <ToolTip.Tip>
+                  <TextBlock>
+                    Root folder of your mod, the one containing missions, localisation, gfx...<LineBreak/>
+                    Local mods are usually in Documents/Paradox Interactive/Europa Universalis IV/mod<LineBreak/>
+                    (on Linux ~/.local/share/Paradox Interactive/Europa Universalis IV/mod).<LineBreak/>
+                    <LineBreak/>
+                    Icons defined by the mod are shown in place of vanilla ones with the same name.
+                  </TextBlock>
+                </ToolTip.Tip>
+              </Panel>
+            </StackPanel>
+            <Button Content="Pick folder" Click="ModFolder_Click" Width="160" HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding ModFolder}" Classes="path"/>
+          </StackPanel>
+        </controls:Card>
+
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Mission File" Classes="Headline6"/>
+              <Panel Classes="help">
+                <materialIcons:MaterialIcon Kind="QuestionMarkCircleOutline"/>
+                <ToolTip.Tip>
+                  <TextBlock>
+                    The .txt file with mission branches you want to edit, usually from your mod's missions folder.<LineBreak/>
+                    Use New file to start an empty one.<LineBreak/>
+                    <LineBreak/>
+                    Saving only changes what you edit here, the rest of the file (triggers, effects, comments) stays as it is.
+                  </TextBlock>
+                </ToolTip.Tip>
+              </Panel>
+            </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="8">
               <Button Content="Pick file" Click="MissionFile_Click" Width="160"/>
               <Button Content="New file" Click="NewMissionFile_Click" Width="160" Classes="Outline"/>
             </StackPanel>
-            <TextBlock Text="{Binding MissionFile}" Classes="Body2"/>
+            <TextBlock Text="{Binding MissionFile}" Classes="path"/>
           </StackPanel>
         </controls:Card>
 
         <controls:Card Padding="16">
           <StackPanel Spacing="6">
-            <TextBlock Text="Localisation File" Classes="Headline6"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Localisation File" Classes="Headline6"/>
+              <Panel Classes="help">
+                <materialIcons:MaterialIcon Kind="QuestionMarkCircleOutline"/>
+                <ToolTip.Tip>
+                  <TextBlock>
+                    The .yml file from your mod's localisation folder with titles and descriptions of these missions<LineBreak/>
+                    (keys named &lt;mission&gt;_title and &lt;mission&gt;_desc). Titles and descriptions of new missions are added to it.<LineBreak/>
+                    <LineBreak/>
+                    Only those lines are changed when saving, other entries and comments stay as they are.
+                  </TextBlock>
+                </ToolTip.Tip>
+              </Panel>
+            </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="8">
               <Button Content="Pick file" Click="LocalisationFile_Click" Width="160"/>
               <Button Content="New file" Click="NewLocalisationFile_Click" Width="160" Classes="Outline"/>
             </StackPanel>
-            <TextBlock Text="{Binding LocalisationFile}" Classes="Body2"/>
-          </StackPanel>
-        </controls:Card>
-
-        <controls:Card Padding="16">
-          <StackPanel Spacing="6">
-            <TextBlock Text="Vanilla Folder" Classes="Headline6"/>
-            <TextBlock Text="Europa Universalis IV installation folder" Classes="Caption"/>
-            <Button Content="Pick folder" Click="VanillaFolder_Click" Width="160" HorizontalAlignment="Left"/>
-            <TextBlock Text="{Binding VanillaFolder}" Classes="Body2"/>
-          </StackPanel>
-        </controls:Card>
-
-        <controls:Card Padding="16">
-          <StackPanel Spacing="6">
-            <TextBlock Text="Mod Folder" Classes="Headline6"/>
-            <Button Content="Pick folder" Click="ModFolder_Click" Width="160" HorizontalAlignment="Left"/>
-            <TextBlock Text="{Binding ModFolder}" Classes="Body2"/>
+            <TextBlock Text="{Binding LocalisationFile}" Classes="path"/>
           </StackPanel>
         </controls:Card>
       </StackPanel>

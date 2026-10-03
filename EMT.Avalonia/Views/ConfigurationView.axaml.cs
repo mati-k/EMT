@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using EMT.Helpers;
 using EMT.ViewModels;
 using System.Collections.Generic;
 using System.IO;
@@ -22,50 +23,51 @@ namespace EMT.Views
 
         private async void MissionFile_Click(object? sender, RoutedEventArgs e)
         {
-            string? path = await PickFile("Select Mission File", MissionFiles, StartHints(ViewModel.MissionFile, "missions"));
+            string? path = await PickFile("Select Mission File", MissionFiles, StartHints(ViewModel.MissionFile, ViewModel.LocalisationFile, "missions"));
             if (path != null)
                 ViewModel.MissionFile = path;
         }
 
         private async void NewMissionFile_Click(object? sender, RoutedEventArgs e)
         {
-            string? path = await CreateFile("New Mission File", MissionFiles, ".txt", StartHints(ViewModel.MissionFile, "missions"));
+            string? path = await CreateFile("New Mission File", MissionFiles, ".txt", StartHints(ViewModel.MissionFile, ViewModel.LocalisationFile, "missions"));
             if (path != null)
                 ViewModel.MissionFile = path;
         }
 
         private async void LocalisationFile_Click(object? sender, RoutedEventArgs e)
         {
-            string? path = await PickFile("Select Localisation File", LocalisationFiles, StartHints(ViewModel.LocalisationFile, "localisation"));
+            string? path = await PickFile("Select Localisation File", LocalisationFiles, StartHints(ViewModel.LocalisationFile, ViewModel.MissionFile, "localisation"));
             if (path != null)
                 ViewModel.LocalisationFile = path;
         }
 
         private async void NewLocalisationFile_Click(object? sender, RoutedEventArgs e)
         {
-            string? path = await CreateFile("New Localisation File", LocalisationFiles, ".yml", StartHints(ViewModel.LocalisationFile, "localisation"));
+            string? path = await CreateFile("New Localisation File", LocalisationFiles, ".yml", StartHints(ViewModel.LocalisationFile, ViewModel.MissionFile, "localisation"));
             if (path != null)
                 ViewModel.LocalisationFile = path;
         }
 
         private async void VanillaFolder_Click(object? sender, RoutedEventArgs e)
         {
-            string? path = await PickFolder("Select Europa Universalis IV folder", ViewModel.VanillaFolder);
+            string? path = await PickFolder("Select Europa Universalis IV folder", [ViewModel.VanillaFolder, GamePaths.FindSteamCommonFolder()]);
             if (path != null)
                 ViewModel.VanillaFolder = path;
         }
 
         private async void ModFolder_Click(object? sender, RoutedEventArgs e)
         {
-            string? path = await PickFolder("Select mod folder", ViewModel.ModFolder);
+            string? path = await PickFolder("Select mod folder", [ViewModel.ModFolder, GamePaths.FindModsFolder()]);
             if (path != null)
                 ViewModel.ModFolder = path;
         }
 
         /// <summary>
-        /// Folders to try opening pickers in: next to current file, then the matching mod subfolder.
+        /// Folders to try opening pickers in: next to the current file, the matching mod subfolder,
+        /// then the same subfolder next to the other file (e.g. missions folder next to localisation).
         /// </summary>
-        private List<string?> StartHints(string currentFile, string modSubfolder)
+        private List<string?> StartHints(string currentFile, string otherFile, string modSubfolder)
         {
             List<string?> hints = [];
 
@@ -73,10 +75,13 @@ namespace EMT.Views
                 hints.Add(Path.GetDirectoryName(currentFile));
 
             if (!string.IsNullOrWhiteSpace(ViewModel.ModFolder))
-            {
                 hints.Add(Path.Combine(ViewModel.ModFolder, modSubfolder));
+
+            if (!string.IsNullOrWhiteSpace(otherFile) && Path.GetDirectoryName(Path.GetDirectoryName(otherFile)) is string otherRoot)
+                hints.Add(Path.Combine(otherRoot, modSubfolder));
+
+            if (!string.IsNullOrWhiteSpace(ViewModel.ModFolder))
                 hints.Add(ViewModel.ModFolder);
-            }
 
             return hints;
         }
@@ -131,7 +136,7 @@ namespace EMT.Views
             return path;
         }
 
-        private async Task<string?> PickFolder(string title, string current)
+        private async Task<string?> PickFolder(string title, List<string?> hints)
         {
             var storageProvider = TopLevel.GetTopLevel(this)!.StorageProvider;
 
@@ -139,7 +144,7 @@ namespace EMT.Views
             {
                 Title = title,
                 AllowMultiple = false,
-                SuggestedStartLocation = await FirstExistingFolder(storageProvider, [current]),
+                SuggestedStartLocation = await FirstExistingFolder(storageProvider, hints),
             });
 
             return folders.Count >= 1 ? folders[0].TryGetLocalPath() : null;

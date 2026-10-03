@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
+using EMT.Helpers;
 using EMT.Models;
 using EMT.Services;
 using System;
@@ -21,11 +22,23 @@ namespace EMT.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ContinueCommand))]
+        [NotifyPropertyChangedFor(nameof(VanillaFolderWarning))]
         private string _vanillaFolder = "";
+
+        /// <summary>
+        /// Game folder was filled in by detection, not picked by the user.
+        /// </summary>
+        [ObservableProperty]
+        private bool _vanillaFolderDetected;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ContinueCommand))]
         private string _modFolder = "";
+
+        public string? VanillaFolderWarning =>
+            string.IsNullOrWhiteSpace(VanillaFolder) || GamePaths.IsGameFolder(VanillaFolder)
+                ? null
+                : "This doesn't look like the game folder, it should contain interface and missions folders";
 
         private readonly Func<ConfigData, Task>? _onContinue;
 
@@ -42,6 +55,17 @@ namespace EMT.ViewModels
                 VanillaFolder = config.VanillaFolder;
                 ModFolder = config.ModFolder;
             }
+
+            if (string.IsNullOrWhiteSpace(VanillaFolder) && GamePaths.FindGameFolder() is string detected)
+            {
+                VanillaFolder = detected;
+                VanillaFolderDetected = true;
+            }
+        }
+
+        partial void OnVanillaFolderChanged(string value)
+        {
+            VanillaFolderDetected = false;
         }
 
         public ConfigurationViewModel(Func<ConfigData, Task> onContinue) : this()

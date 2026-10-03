@@ -81,7 +81,7 @@ namespace EMT.Models
             if (node.Child("position") is { IsGroup: false } position)
             {
                 if (!int.TryParse(position.Value, out int value))
-                    throw new FormatException($"Mission {node.Name}: position '{position.Value}' isn't a number");
+                    throw new ScriptParseException($"Position of mission '{node.Name}' should be a number, not '{position.Value}'", position.ValueStart);
                 mission.Position = value;
             }
 

@@ -11,6 +11,7 @@ namespace EMT.Helpers
         public static string DataFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EMT");
         public static string ConfigFile { get; } = Path.Combine(DataFolder, "config.json");
         public static string LogFolder { get; } = Path.Combine(DataFolder, "logs");
+        public static string BackupFolder { get; } = Path.Combine(DataFolder, "backups");
 
         /// <summary>
         /// Config file written by the WPF version, next to the executable or in the working directory.

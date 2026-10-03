@@ -9,5 +9,10 @@ namespace EMT.Models
         public string LocalisationFile { get; set; } = "";
         public string VanillaFolder { get; set; } = "";
         public string ModFolder { get; set; } = "";
+
+        /// <summary>
+        /// Copy both files to the backups folder before each save.
+        /// </summary>
+        public bool UseBackups { get; set; } = true;
     }
 }

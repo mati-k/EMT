@@ -34,6 +34,7 @@ namespace EMT.Models
         public Localisation(TextFile file)
         {
             _file = file;
+            SavedText = file.Text;
             _lineEnd = file.NewLine == "\r\n" ? "\r" : "";
             _lines = file.Text.Split('\n').ToList();
 
@@ -50,6 +51,18 @@ namespace EMT.Models
         }
 
         public IEnumerable<string> Keys => _index.Keys;
+
+        /// <summary>
+        /// File contents as of loading or the last save, to notice changes made outside the tool.
+        /// </summary>
+        public string SavedText { get; private set; }
+
+        public string CurrentText => string.Join("\n", _lines) + (_endsWithNewLine ? "\n" : "");
+
+        public void MarkSaved()
+        {
+            SavedText = CurrentText;
+        }
 
         public bool TryGet(string key, out string value)
         {
@@ -103,7 +116,7 @@ namespace EMT.Models
 
         public void Save(Stream stream)
         {
-            _file.Write(stream, string.Join("\n", _lines) + (_endsWithNewLine ? "\n" : ""));
+            _file.Write(stream, CurrentText);
         }
 
         /// <summary>

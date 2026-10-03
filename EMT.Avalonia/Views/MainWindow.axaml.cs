@@ -1,11 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
+using EMT.Helpers;
 using EMT.Models;
 using EMT.ViewModels;
+using Serilog;
 using System;
-using System.Collections.Specialized;
+using System.IO;
 
 namespace EMT.Views
 {
@@ -41,6 +45,22 @@ namespace EMT.Views
             }
 
             FancyTextMenu.IsEnabled = viewModel.FontColors.Count > 0;
+        }
+
+        private async void OpenBackups_Click(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Directory.CreateDirectory(AppPaths.BackupFolder);
+                bool opened = await Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(AppPaths.BackupFolder));
+                if (!opened)
+                    await Dialogs.ShowInfo("Backups folder", AppPaths.BackupFolder);
+            }
+            catch (Exception exception)
+            {
+                Log.Error(exception, "Opening backups folder");
+                await Dialogs.ShowInfo("Backups folder", AppPaths.BackupFolder);
+            }
         }
 
         /// <summary>

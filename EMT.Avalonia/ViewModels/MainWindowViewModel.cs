@@ -2,7 +2,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
-using DialogHostAvalonia;
 using EMT.Helpers;
 using EMT.Models;
 using EMT.Services;
@@ -10,14 +9,17 @@ using Material.Styles.Controls;
 using Material.Styles.Models;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EMT.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        public const string DialogHostId = "MainDialogHost";
+        public const string DialogHostId = Dialogs.HostId;
         public const string SnackbarHostName = "Root";
 
         [ObservableProperty]
@@ -44,7 +46,14 @@ namespace EMT.ViewModels
             // Mod doesn't need its own interface folder, it may use only vanilla icons
             if (!GamePaths.IsGameFolder(config.VanillaFolder))
             {
-                await ShowInfo("Game folder doesn't look right, it should contain interface and missions folders");
+                await Dialogs.ShowError("Game folder doesn't look right",
+                    $"{config.VanillaFolder}\nIt should contain interface and missions folders, pick the Europa Universalis IV installation folder.");
+                return;
+            }
+
+            if (!Directory.Exists(config.ModFolder))
+            {
+                await Dialogs.ShowError("Mod folder doesn't exist", $"{config.ModFolder}\nIt may have been moved or deleted, pick it again.");
                 return;
             }
 
@@ -65,20 +74,33 @@ namespace EMT.ViewModels
                 _config = config;
                 Editor = new EditorViewModel(result);
                 CurrentPage = Editor;
+
+                if (gfxService.LoadWarnings.Count > 0)
+                    await ShowGfxWarnings(gfxService.LoadWarnings);
             }
             catch (UserFacingException e)
             {
-                await ShowInfo($"{e.Message}, check error log in:\n{AppPaths.LogFolder}");
+                await Dialogs.ShowError(e.Message, e.Details);
             }
             catch (Exception e)
             {
                 Log.Error(e, "Loading files");
-                await ShowInfo($"Unexpected error when loading files, check error log in:\n{AppPaths.LogFolder}");
+                await Dialogs.ShowError("Unexpected error when loading files", e.Message);
             }
             finally
             {
                 IsBusy = false;
             }
+        }
+
+        private static async Task ShowGfxWarnings(IReadOnlyList<string> warnings)
+        {
+            const int shown = 3;
+            string details = string.Join("\n\n", warnings.Take(shown));
+            if (warnings.Count > shown)
+                details += $"\n\n...and {warnings.Count - shown} more";
+
+            await Dialogs.ShowError($"{warnings.Count} interface file(s) couldn't be read, icons defined in them won't be shown", details);
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
@@ -87,10 +109,31 @@ namespace EMT.ViewModels
             if (Editor == null || _config == null)
                 return;
 
-            var errors = MissionFileHelper.Save(_config, Editor.Loaded);
-            if (errors.Count > 0)
+            try
             {
-                await ShowInfo(string.Join("\n\n", errors) + $"\n\nCheck error log in:\n{AppPaths.LogFolder}");
+                List<string> changed = MissionFileHelper.ChangedOnDisk(_config, Editor.Loaded);
+                if (changed.Count > 0)
+                {
+                    bool overwrite = await Dialogs.Confirm("Files changed outside the tool",
+                        "These files were changed (for example in a text editor) since they were loaded:\n\n" + string.Join("\n", changed)
+                        + "\n\nSaving will replace them with the version in the tool, those changes will be lost"
+                        + (_config.UseBackups ? " (a backup is made first)." : "."),
+                        "Save anyway");
+
+                    if (!overwrite)
+                        return;
+                }
+
+                var errors = MissionFileHelper.Save(_config, Editor.Loaded);
+                if (errors.Count > 0)
+                    await Dialogs.ShowError("Saving failed", string.Join("\n\n", errors));
+                else
+                    Notify("Saved");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Saving");
+                await Dialogs.ShowError("Unexpected error when saving", e.Message);
             }
         }
 
@@ -103,24 +146,27 @@ namespace EMT.ViewModels
         public async Task CopyFontColor(ColorKey color)
         {
             var clipboard = Ioc.Default.GetService<IClipboardService>();
-            if (clipboard != null)
+            if (clipboard == null)
+                return;
+
+            try
             {
                 await clipboard.SetTextAsync($"§{color.Key} §!");
                 Notify($"Copied §{color.Key} §! to clipboard");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Copying to clipboard");
+                Notify("Couldn't access the clipboard");
             }
         }
 
         /// <summary>
         /// Short message at the bottom of the window.
         /// </summary>
-        private static void Notify(string text)
+        public static void Notify(string text)
         {
             SnackbarHost.Post(new SnackbarModel(text, TimeSpan.FromSeconds(2.5)), SnackbarHostName, DispatcherPriority.Normal);
-        }
-
-        private static async Task ShowInfo(string text)
-        {
-            await DialogHost.Show(new InfoDialogData(text), DialogHostId);
         }
     }
 }

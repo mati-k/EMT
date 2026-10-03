@@ -3,22 +3,16 @@ using System.Collections.Generic;
 
 namespace EMT.Helpers.Script
 {
+    /// <summary>
+    /// Problem in script content, with position in the text so it can be shown to the user.
+    /// </summary>
     public class ScriptParseException : Exception
     {
-        public ScriptParseException(string message, string text, int offset) : base($"{message} (line {LineOf(text, offset)})")
-        {
-        }
+        public int Offset { get; }
 
-        private static int LineOf(string text, int offset)
+        public ScriptParseException(string message, int offset) : base(message)
         {
-            int line = 1;
-            for (int i = 0; i < offset && i < text.Length; i++)
-            {
-                if (text[i] == '\n')
-                    line++;
-            }
-
-            return line;
+            Offset = offset;
         }
     }
 
@@ -65,14 +59,14 @@ namespace EMT.Helpers.Script
                 if (token == null)
                 {
                     if (!isRoot)
-                        throw new ScriptParseException($"Missing closing brace for '{group.Name}'", _text, group.OpenBrace);
+                        throw new ScriptParseException($"Block '{group.Name}' opened here is never closed, a closing brace is missing somewhere below", group.OpenBrace);
                     return;
                 }
 
                 if (token.Kind == TokenKind.Close)
                 {
                     if (isRoot)
-                        throw new ScriptParseException("Unexpected closing brace", _text, token.Start);
+                        throw new ScriptParseException("Unexpected closing brace, there is one too many above", token.Start);
 
                     Next();
                     group.CloseBrace = token.Start;
@@ -96,7 +90,7 @@ namespace EMT.Helpers.Script
             }
 
             if (first.Kind == TokenKind.Operator)
-                throw new ScriptParseException($"Unexpected '{first.Text}'", _text, first.Start);
+                throw new ScriptParseException($"Unexpected '{first.Text}'", first.Start);
 
             Token? op = Peek();
             if (op == null || op.Kind != TokenKind.Operator)
@@ -109,7 +103,7 @@ namespace EMT.Helpers.Script
             }
 
             Next();
-            Token value = Peek() ?? throw new ScriptParseException($"Missing value for '{first.Text}'", _text, op.Start);
+            Token value = Peek() ?? throw new ScriptParseException($"Missing value for '{first.Text}'", op.Start);
             Next();
 
             // e.g. color = rgb { 1 2 3 }
@@ -136,7 +130,7 @@ namespace EMT.Helpers.Script
                     };
 
                 default:
-                    throw new ScriptParseException($"Unexpected '{value.Text}' after '{first.Text} {op.Text}'", _text, value.Start);
+                    throw new ScriptParseException($"Unexpected '{value.Text}' after '{first.Text} {op.Text}'", value.Start);
             }
         }
 
@@ -173,7 +167,7 @@ namespace EMT.Helpers.Script
                     }
 
                     if (i >= text.Length)
-                        throw new ScriptParseException("Unclosed quote", text, start);
+                        throw new ScriptParseException("Quote opened here is never closed", start);
 
                     i++;
                     tokens.Add(new Token(TokenKind.String, text[(start + 1)..(i - 1)], start, i));

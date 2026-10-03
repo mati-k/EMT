@@ -133,6 +133,24 @@
             <TextBlock Text="{Binding LocalisationFile}" Classes="path"/>
           </StackPanel>
         </controls:Card>
+
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Other Settings" Classes="Headline6"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <CheckBox Content="Use backups" IsChecked="{Binding UseBackups}"/>
+              <Panel Classes="help">
+                <materialIcons:MaterialIcon Kind="QuestionMarkCircleOutline"/>
+                <ToolTip.Tip>
+                  <TextBlock>
+                    Before each save, copies of the mission and localisation files are made in the backups folder<LineBreak/>
+                    (File &gt; Open backups folder), named with date and time of the save.
+                  </TextBlock>
+                </ToolTip.Tip>
+              </Panel>
+            </StackPanel>
+          </StackPanel>
+        </controls:Card>
       </StackPanel>
     </ScrollViewer>
 

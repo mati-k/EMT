@@ -30,6 +30,12 @@ namespace EMT.Services
 
         public IReadOnlyDictionary<string, GfxSprite> MissionGfx => _missionGfx;
         public IReadOnlyList<ColorKey> TextColors => _textColors;
+
+        /// <summary>
+        /// Interface files that couldn't be read during last load, sprites defined in them are missing.
+        /// </summary>
+        public IReadOnlyList<string> LoadWarnings => _loadWarnings;
+        private readonly List<string> _loadWarnings = [];
         public string? MissionFramePath { get; private set; }
         public string? MissionViewBackgroundPath { get; private set; }
 
@@ -38,6 +44,7 @@ namespace EMT.Services
             _missionGfx.Clear();
             _framesCache.Clear();
             _textColors.Clear();
+            _loadWarnings.Clear();
             MissionFramePath = null;
             MissionViewBackgroundPath = null;
             _backgroundTile = null;
@@ -63,9 +70,11 @@ namespace EMT.Services
 
             foreach (string gfxFile in gfxFiles)
             {
+                string text = "";
                 try
                 {
-                    ScriptNode gfxFileData = ScriptParser.Parse(TextFile.ReadScript(gfxFile).Text);
+                    text = TextFile.ReadScript(gfxFile).Text;
+                    ScriptNode gfxFileData = ScriptParser.Parse(text);
 
                     if (Path.GetFileName(gfxFile).Equals("core.gfx", StringComparison.OrdinalIgnoreCase) && _textColors.Count == 0)
                     {
@@ -92,9 +101,15 @@ namespace EMT.Services
                             MissionViewBackgroundPath = texturePath;
                     }
                 }
+                catch (ScriptParseException e)
+                {
+                    Log.Error(e, "Parsing gfx {GfxFile}", gfxFile);
+                    _loadWarnings.Add(ErrorText.ForScript(gfxFile, text, e));
+                }
                 catch (Exception e)
                 {
                     Log.Error(e, "Loading gfx {GfxFile}", gfxFile);
+                    _loadWarnings.Add(ErrorText.ForFile(gfxFile, e));
                 }
             }
         }

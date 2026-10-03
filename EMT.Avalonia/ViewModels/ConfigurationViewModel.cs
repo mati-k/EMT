@@ -40,6 +40,9 @@ namespace EMT.ViewModels
                 ? null
                 : "This doesn't look like the game folder, it should contain interface and missions folders";
 
+        [ObservableProperty]
+        private bool _useBackups = true;
+
         private readonly Func<ConfigData, Task>? _onContinue;
 
         public ConfigurationViewModel()
@@ -54,6 +57,7 @@ namespace EMT.ViewModels
                 LocalisationFile = config.LocalisationFile;
                 VanillaFolder = config.VanillaFolder;
                 ModFolder = config.ModFolder;
+                UseBackups = config.UseBackups;
             }
 
             if (string.IsNullOrWhiteSpace(VanillaFolder) && GamePaths.FindGameFolder() is string detected)
@@ -82,6 +86,7 @@ namespace EMT.ViewModels
                 LocalisationFile = LocalisationFile,
                 VanillaFolder = VanillaFolder,
                 ModFolder = ModFolder,
+                UseBackups = UseBackups,
             };
 
             var configService = Ioc.Default.GetService<IConfigService>()!;

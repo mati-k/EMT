@@ -67,7 +67,7 @@ namespace EMT.Models
             if (node.Child("slot") is { IsGroup: false } slot)
             {
                 if (!int.TryParse(slot.Value, out int value))
-                    throw new FormatException($"Branch {node.Name}: slot '{slot.Value}' isn't a number");
+                    throw new ScriptParseException($"Slot of branch '{node.Name}' should be a number, not '{slot.Value}'", slot.ValueStart);
                 branch.Slot = value;
             }
 

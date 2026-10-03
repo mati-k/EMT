@@ -16,53 +16,103 @@ namespace EMT.Helpers
 
     public static class MissionFileHelper
     {
-        /// <exception cref="UserFacingException">With a message suitable to show to the user</exception>
+        /// <exception cref="UserFacingException">With a message saying which file and where the problem is</exception>
         public static MissionLoadResult Load(ConfigData config)
         {
-            MissionFileModel missionFile;
-            try
-            {
-                missionFile = MissionFileModel.Load(TextFile.ReadScript(config.MissionFile));
-                missionFile.FileName = config.MissionFile;
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Loading mission file");
-                throw new UserFacingException($"Error loading mission file: {e.Message}", e);
-            }
+            MissionFileModel missionFile = LoadMissionFile(config.MissionFile);
+            Localisation localisation = LoadLocalisation(config.LocalisationFile);
 
-            Localisation localisation;
-            try
+            foreach (MissionModel mission in missionFile.Branches.SelectMany(branch => branch.Missions))
             {
-                localisation = Localisation.Load(config.LocalisationFile);
-                foreach (MissionModel mission in missionFile.Branches.SelectMany(branch => branch.Missions))
-                {
-                    if (localisation.TryGet(mission.Name + "_title", out string title))
-                        mission.Title = title;
+                if (localisation.TryGet(mission.Name + "_title", out string title))
+                    mission.Title = title;
 
-                    if (localisation.TryGet(mission.Name + "_desc", out string description))
-                        mission.Description = description;
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Loading localisation file");
-                throw new UserFacingException($"Error loading localisation file: {e.Message}", e);
+                if (localisation.TryGet(mission.Name + "_desc", out string description))
+                    mission.Description = description;
             }
 
             return new MissionLoadResult { MissionFile = missionFile, Localisation = localisation };
         }
 
+        private static MissionFileModel LoadMissionFile(string path)
+        {
+            TextFile file;
+            try
+            {
+                file = TextFile.ReadScript(path);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Reading mission file {Path}", path);
+                throw new UserFacingException("Couldn't read the mission file", ErrorText.ForFile(path, e), e);
+            }
+
+            try
+            {
+                var missionFile = MissionFileModel.Load(file);
+                missionFile.FileName = path;
+                return missionFile;
+            }
+            catch (ScriptParseException e)
+            {
+                Log.Error(e, "Parsing mission file {Path}", path);
+                throw new UserFacingException("Mission file has an error", ErrorText.ForScript(path, file.Text, e), e);
+            }
+        }
+
+        private static Localisation LoadLocalisation(string path)
+        {
+            try
+            {
+                return Localisation.Load(path);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Reading localisation file {Path}", path);
+                throw new UserFacingException("Couldn't read the localisation file", ErrorText.ForFile(path, e), e);
+            }
+        }
+
         /// <summary>
-        /// Saves both files. Each file is backed up first and restored if writing fails.
+        /// Files that were changed (or removed) outside the tool since they were loaded or last saved.
+        /// </summary>
+        public static List<string> ChangedOnDisk(ConfigData config, MissionLoadResult loaded)
+        {
+            List<string> changed = [];
+
+            if (!SameText(config.MissionFile, loaded.MissionFile.File.Text, TextFile.ReadScript))
+                changed.Add(config.MissionFile);
+
+            if (!SameText(config.LocalisationFile, loaded.Localisation.SavedText, TextFile.ReadLocalisation))
+                changed.Add(config.LocalisationFile);
+
+            return changed;
+        }
+
+        private static bool SameText(string path, string expected, Func<string, TextFile> read)
+        {
+            try
+            {
+                return File.Exists(path) && read(path).Text == expected;
+            }
+            catch (Exception e)
+            {
+                // Can't tell, saving will report the actual problem
+                Log.Warning(e, "Checking {Path} for changes", path);
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Saves both files: backs them up if enabled, then writes each one through a temporary file,
+        /// so a failed write never leaves a half written file.
         /// </summary>
         /// <returns>Error messages, empty if everything was saved</returns>
-        public static List<string> Save(ConfigData config, MissionLoadResult loaded)
+        public static List<string> Save(ConfigData config, MissionLoadResult loaded, string? backupFolder = null)
         {
-            List<string> errors = new List<string>();
             MissionFileModel missionFile = loaded.MissionFile;
 
-            // Build text before touching files, so validation errors leave them as they were
+            // Build text before touching files, so problems like a missing icon leave them as they were
             string missionText;
             try
             {
@@ -71,21 +121,61 @@ namespace EMT.Helpers
             catch (Exception e)
             {
                 Log.Error(e, "Preparing mission file");
-                errors.Add($"Nothing saved: {e.Message}");
-                return errors;
+                return [$"Nothing was saved: {e.Message}"];
+            }
+
+            if (config.UseBackups)
+            {
+                foreach (string path in new[] { config.MissionFile, config.LocalisationFile })
+                {
+                    try
+                    {
+                        CreateBackup(path, backupFolder ?? AppPaths.BackupFolder);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Backing up {Path}", path);
+                        return [$"Nothing was saved, couldn't make a backup of\n{ErrorText.ForFile(path, e)}"];
+                    }
+                }
             }
 
             List<MissionModel> missions = missionFile.Branches.SelectMany(branch => branch.Missions).ToList();
             UpdateLocalisation(loaded.Localisation, missions);
 
             TextFile newFile = new TextFile() { Text = missionText, Encoding = missionFile.File.Encoding, NewLine = missionFile.File.NewLine };
-            bool missionSaved = SafeWrite(config.MissionFile, "mission", errors, stream => newFile.Write(stream, missionText));
-            SafeWrite(config.LocalisationFile, "localisation", errors, loaded.Localisation.Save);
+            if (!SafeWrite(config.MissionFile, stream => newFile.Write(stream, missionText), out string? missionError))
+            {
+                // Localisation would refer to renamed missions, leave it for the next save
+                return [$"Mission file wasn't saved, nothing was changed:\n{missionError}"];
+            }
 
-            if (missionSaved)
-                missionFile.MarkSaved(newFile);
+            missionFile.MarkSaved(newFile);
 
-            return errors;
+            if (!SafeWrite(config.LocalisationFile, loaded.Localisation.Save, out string? localisationError))
+                return [$"Mission file was saved, but localisation wasn't:\n{localisationError}"];
+
+            loaded.Localisation.MarkSaved();
+            return [];
+        }
+
+        /// <summary>
+        /// Copies file to the backups folder, named with the current time. Missing file (e.g. new one) is skipped.
+        /// </summary>
+        public static string? CreateBackup(string path, string backupFolder)
+        {
+            if (!File.Exists(path))
+                return null;
+
+            Directory.CreateDirectory(backupFolder);
+            string backup = Path.Combine(backupFolder,
+                $"{Path.GetFileNameWithoutExtension(path)}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}{Path.GetExtension(path)}");
+
+            File.Copy(path, backup, overwrite: true);
+
+            // Copy keeps read-only flag of the original, backups should stay removable
+            File.SetAttributes(backup, File.GetAttributes(backup) & ~FileAttributes.ReadOnly);
+            return backup;
         }
 
         public static void UpdateLocalisation(Localisation localisation, IEnumerable<MissionModel> missions)
@@ -113,41 +203,52 @@ namespace EMT.Helpers
                 localisation.Set(key, value);
         }
 
-        private static bool SafeWrite(string filePath, string fileKind, List<string> errors, Action<Stream> write)
+        /// <summary>
+        /// Writes to a temporary file next to the target, then replaces the target with it.
+        /// </summary>
+        public static bool SafeWrite(string path, Action<Stream> write, out string? error)
         {
-            string backupName = filePath;
-            while (File.Exists(backupName))
-                backupName = backupName + "_copy";
-
-            bool hasBackup = File.Exists(filePath);
-            if (hasBackup)
-                File.Copy(filePath, backupName);
-
-            bool success = true;
+            string temporary = path + ".emt-tmp";
             try
             {
-                using FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-                write(stream);
+                using (FileStream stream = new FileStream(temporary, FileMode.Create, FileAccess.Write))
+                {
+                    write(stream);
+                }
+
+                File.Move(temporary, path, overwrite: true);
+                error = null;
+                return true;
             }
             catch (Exception e)
             {
-                success = false;
-                Log.Error(e, "Saving {FileKind} file", fileKind);
-                errors.Add($"Error when saving {fileKind} file: {e.Message}");
+                Log.Error(e, "Saving {Path}", path);
+                error = ErrorText.ForFile(path, e);
 
-                if (hasBackup)
-                    File.Copy(backupName, filePath, true);
+                try
+                {
+                    File.Delete(temporary);
+                }
+                catch (Exception cleanup)
+                {
+                    Log.Warning(cleanup, "Removing {Temporary}", temporary);
+                }
+
+                return false;
             }
-
-            if (hasBackup)
-                File.Delete(backupName);
-
-            return success;
         }
     }
 
+    /// <summary>
+    /// Error to show to the user: short title and details saying which file and where.
+    /// </summary>
     public class UserFacingException : Exception
     {
-        public UserFacingException(string message, Exception inner) : base(message, inner) { }
+        public string Details { get; }
+
+        public UserFacingException(string title, string details, Exception inner) : base(title, inner)
+        {
+            Details = details;
+        }
     }
 }

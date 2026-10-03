@@ -12,6 +12,11 @@ namespace EMT.Services
         /// </summary>
         public IReadOnlyDictionary<string, GfxSprite> MissionGfx { get; }
         public IReadOnlyList<ColorKey> TextColors { get; }
+
+        /// <summary>
+        /// Interface files that couldn't be read during last load, sprites defined in them are missing.
+        /// </summary>
+        public IReadOnlyList<string> LoadWarnings { get; }
         public string? MissionFramePath { get; }
 
         public void Load(string vanillaFolder, string modFolder);

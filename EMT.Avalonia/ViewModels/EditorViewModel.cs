@@ -1,15 +1,15 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EMT.Helpers;
 using EMT.Models;
 using System;
-using System.Collections.Generic;
 
 namespace EMT.ViewModels
 {
     public partial class EditorViewModel : ViewModelBase
     {
-        public MissionFileModel MissionFile { get; }
-        public Dictionary<string, string> UnconnectedLocalisation { get; }
+        public MissionLoadResult Loaded { get; }
+        public MissionFileModel MissionFile => Loaded.MissionFile;
         public MissionTreeViewModel TreeViewModel { get; }
 
         /// <summary>
@@ -21,11 +21,10 @@ namespace EMT.ViewModels
         [ObservableProperty]
         private ViewModelBase? _detailsViewModel;
 
-        public EditorViewModel(MissionFileModel missionFile, Dictionary<string, string> unconnectedLocalisation)
+        public EditorViewModel(MissionLoadResult loaded)
         {
-            MissionFile = missionFile;
-            UnconnectedLocalisation = unconnectedLocalisation;
-            TreeViewModel = new MissionTreeViewModel(missionFile, mission => SelectedItem = mission);
+            Loaded = loaded;
+            TreeViewModel = new MissionTreeViewModel(loaded.MissionFile, mission => SelectedItem = mission);
         }
 
         partial void OnSelectedItemChanged(object? value)

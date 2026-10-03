@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:EMT.ViewModels"
-             xmlns:views="using:EMT.Views"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
@@ -51,14 +50,6 @@
             <TextBlock Text="Mod Folder" Classes="Headline6"/>
             <Button Content="Pick folder" Click="ModFolder_Click" Width="160" HorizontalAlignment="Left"/>
             <TextBlock Text="{Binding ModFolder}" Classes="Body2"/>
-          </StackPanel>
-        </controls:Card>
-
-        <controls:Card Padding="16">
-          <StackPanel Spacing="6">
-            <TextBlock Text="Default Potential" Classes="Headline6"/>
-            <TextBlock Text="Used for newly created branches" Classes="Caption"/>
-            <views:NodeTreeEditor Root="{Binding DefaultPotential}"/>
           </StackPanel>
         </controls:Card>
       </StackPanel>

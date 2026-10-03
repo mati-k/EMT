@@ -51,9 +51,8 @@
         <views:RichTextBlock RichText="{Binding Mission.Description}" TextWrapping="Wrap" Foreground="White" FontWeight="Bold"/>
       </Border>
 
-      <views:NodeTreeEditor Root="{Binding Mission.ProvincesToHighlight}" Header="Provinces to highlight"/>
-      <views:NodeTreeEditor Root="{Binding Mission.Trigger}" Header="Trigger"/>
-      <views:NodeTreeEditor Root="{Binding Mission.Effect}" Header="Effect"/>
+      <TextBlock Classes="Caption" TextWrapping="Wrap"
+                 Text="Trigger, effect and other mission content are kept as they are in the file, edit them in your text editor."/>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

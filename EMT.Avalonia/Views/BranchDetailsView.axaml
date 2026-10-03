@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:EMT.ViewModels"
-             xmlns:views="using:EMT.Views"
              xmlns:assist="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
              x:DataType="vm:BranchDetailsViewModel"
              x:Class="EMT.Views.BranchDetailsView">
@@ -9,14 +8,9 @@
     <StackPanel Spacing="8" Margin="12,0">
       <TextBox Text="{Binding Branch.Name}" assist:TextFieldAssist.Label="Branch name"/>
       <TextBox Text="{Binding Branch.Slot}" assist:TextFieldAssist.Label="Branch slot"/>
-
-      <CheckBox IsChecked="{Binding Branch.Generic}" Content="Generic"/>
-      <CheckBox IsChecked="{Binding Branch.AI}" Content="AI"/>
-      <CheckBox IsChecked="{Binding Branch.CountryShield}" Content="Country Shield"/>
-
-      <views:NodeTreeEditor Root="{Binding Branch.Potential}" Header="Potential"/>
-      <views:NodeTreeEditor Root="{Binding Branch.PotentialOnLoad}" Header="Potential on load"
-                            IsVisible="{Binding Branch.PotentialOnLoad, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+      <CheckBox IsChecked="{Binding Branch.IsActive}" Content="Show in preview"/>
+      <TextBlock Classes="Caption" TextWrapping="Wrap"
+                 Text="Potential and other branch settings are kept as they are in the file, edit them in your text editor."/>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

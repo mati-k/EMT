@@ -6,7 +6,6 @@ using EMT.Services;
 using EMT.ViewModels;
 using EMT.Views;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text;
 
 namespace EMT
 {
@@ -19,9 +18,6 @@ namespace EMT
 
         public override void OnFrameworkInitializationCompleted()
         {
-            // Pdoxcl2Sharp reads game files as Windows-1252
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 var services = new ServiceCollection();

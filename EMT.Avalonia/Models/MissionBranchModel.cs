@@ -1,42 +1,45 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using EMT.Exceptions;
-using Pdoxcl2Sharp;
+using EMT.Helpers.Script;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
 
 namespace EMT.Models
 {
-    public partial class MissionBranchModel : ObservableObject, IParadoxRead, IParadoxWrite
+    /// <summary>
+    /// Branch with the fields this tool edits. Settings like potential stay as text in the file.
+    /// </summary>
+    public partial class MissionBranchModel : ObservableObject
     {
+        /// <summary>
+        /// Branch level keys that aren't missions.
+        /// </summary>
+        public static readonly HashSet<string> SettingKeys = ["slot", "generic", "ai", "has_country_shield", "potential", "potential_on_load"];
+
         [ObservableProperty]
         private string _name = "";
 
         [ObservableProperty]
         private int _slot = 1;
 
-        [ObservableProperty]
-        private bool _generic = false;
-
-        [ObservableProperty]
-        private bool _aI = true;
-
-        [ObservableProperty]
-        private bool _countryShield = true;
-
-        [ObservableProperty]
-        private GroupNodeModel _potential = (GroupNodeModel)DefaultPotential.Instance.Potential.Copy();
-
-        [ObservableProperty]
-        private GroupNodeModel? _potentialOnLoad;
-
+        /// <summary>
+        /// Shown in the preview, not saved.
+        /// </summary>
         [ObservableProperty]
         private bool _isActive = true;
 
         public ObservableCollection<MissionModel> Missions { get; } = new ObservableCollection<MissionModel>();
 
         public MissionFileModel MissionFile { get; set; }
+
+        /// <summary>
+        /// Where the branch is in the loaded file text, null for branches added in the tool.
+        /// </summary>
+        public ScriptNode? Source { get; private set; }
+
+        public string? SavedName { get; private set; }
+        public int SavedSlot { get; private set; }
 
         public MissionBranchModel(MissionFileModel missionFile)
         {
@@ -54,62 +57,38 @@ namespace EMT.Models
             }
         }
 
-        public void TokenCallback(ParadoxParser parser, string token)
+        public static bool IsMissionNode(ScriptNode node) =>
+            node.IsGroup && !node.IsBare && node.Operator != null && !SettingKeys.Contains(node.Name);
+
+        public static MissionBranchModel FromNode(ScriptNode node, MissionFileModel missionFile)
         {
-            try
+            var branch = new MissionBranchModel(missionFile) { Name = node.Name };
+
+            if (node.Child("slot") is { IsGroup: false } slot)
             {
-                switch (token)
-                {
-                    case "slot": Slot = parser.ReadInt32(); break;
-                    case "generic": Generic = parser.ReadBool(); break;
-                    case "ai": AI = parser.ReadBool(); break;
-                    case "potential": Potential = parser.Parse(new GroupNodeModel() { Name = "potential" }); break;
-                    case "potential_on_load": PotentialOnLoad = parser.Parse(new GroupNodeModel() { Name = "potential_on_load" }); break;
-                    case "has_country_shield": CountryShield = parser.ReadBool(); break;
-                    default: Missions.Add(parser.Parse(new MissionModel(this) { Name = token })); break;
-                }
+                if (!int.TryParse(slot.Value, out int value))
+                    throw new FormatException($"Branch {node.Name}: slot '{slot.Value}' isn't a number");
+                branch.Slot = value;
             }
-            catch (Exception e)
+
+            foreach (ScriptNode child in node.Children!)
             {
-                throw new Exception($"Mission branch exception, branch: {Name}  , token: {token} \n{e}");
+                if (IsMissionNode(child))
+                    branch.Missions.Add(MissionModel.FromNode(child, branch));
             }
+
+            branch.MarkSaved(node);
+            return branch;
         }
 
-        public void Write(ParadoxStreamWriter writer)
+        /// <summary>
+        /// Called after loading or saving, with the branch's place in the current file text.
+        /// </summary>
+        public void MarkSaved(ScriptNode node)
         {
-            if (Slot <= 0)
-                throw new WrongPositionException(string.Format("Slot must be greater than 0, branch: {0}", Name));
-
-            writer.WriteLine("slot", Slot.ToString(), ValueWrite.LeadingTabs);
-            writer.WriteLine("generic", BoolToString(Generic), ValueWrite.LeadingTabs);
-            writer.WriteLine("ai", BoolToString(AI), ValueWrite.LeadingTabs);
-            writer.WriteLine("has_country_shield", BoolToString(CountryShield), ValueWrite.LeadingTabs);
-
-            Potential.Write(writer);
-            if (PotentialOnLoad != null)
-            {
-                PotentialOnLoad.Write(writer);
-            }
-
-            writer.WriteLine();
-
-            foreach (MissionModel mission in Missions)
-            {
-                if (String.IsNullOrWhiteSpace(mission.Name))
-                    throw new MissionNameException(Name);
-
-                writer.WriteLine(mission.Name + " = {", ValueWrite.LeadingTabs);
-                mission.Write(writer);
-                writer.WriteLine("}", ValueWrite.LeadingTabs);
-
-                if (mission != Missions.Last())
-                    writer.WriteLine();
-            }
-        }
-
-        private static string BoolToString(bool b)
-        {
-            return b ? "yes" : "no";
+            Source = node;
+            SavedName = Name;
+            SavedSlot = Slot;
         }
     }
 }

@@ -27,8 +27,6 @@ namespace EMT.ViewModels
         [NotifyCanExecuteChangedFor(nameof(ContinueCommand))]
         private string _modFolder = "";
 
-        public GroupNodeModel DefaultPotential => Models.DefaultPotential.Instance.Potential;
-
         private readonly Func<ConfigData, Task>? _onContinue;
 
         public ConfigurationViewModel()

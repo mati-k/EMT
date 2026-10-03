@@ -4,8 +4,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using EMT.Helpers;
 using EMT.Models;
-using EMT.Models.Gfx;
-using Pdoxcl2Sharp;
+using EMT.Helpers.Script;
 using Pfim;
 using Serilog;
 using System;
@@ -58,29 +57,27 @@ namespace EMT.Services
             {
                 try
                 {
-                    GfxFileModel gfxFileData;
-                    using (FileStream fileStream = File.OpenRead(gfxFile))
-                    {
-                        gfxFileData = ParadoxParser.Parse(fileStream, new GfxFileModel());
-                    }
+                    ScriptNode gfxFileData = ScriptParser.Parse(TextFile.ReadScript(gfxFile).Text);
 
                     if (Path.GetFileName(gfxFile).Equals("core.gfx", StringComparison.OrdinalIgnoreCase) && _textColors.Count == 0)
                     {
                         LoadTextColors(gfxFileData);
                     }
 
-                    foreach (GfxModel gfx in gfxFileData.Gfx)
+                    foreach (ScriptNode sprite in Descendants(gfxFileData).Where(group => group.Name.Equals("spriteType", StringComparison.OrdinalIgnoreCase)))
                     {
-                        if (gfx.Name == null || gfx.TextureFile == null || _missionGfx.ContainsKey(gfx.Name))
+                        string? name = Property(sprite, "name");
+                        string? textureFile = Property(sprite, "texturefile");
+                        if (name == null || textureFile == null || _missionGfx.ContainsKey(name))
                             continue;
 
-                        string texture = PathHelper.NormalizeGamePath(gfx.TextureFile);
+                        string texture = PathHelper.NormalizeGamePath(textureFile);
                         string texturePath = PathHelper.ResolveCaseInsensitive(root, texture) ?? Path.Combine(root, texture);
 
                         if (texture.StartsWith(_missionGfxPrefix, StringComparison.OrdinalIgnoreCase))
-                            _missionGfx.Add(gfx.Name, texturePath);
+                            _missionGfx.Add(name, texturePath);
 
-                        if (gfx.Name.Equals(_missionFrameGfx) && MissionFramePath == null)
+                        if (name.Equals(_missionFrameGfx) && MissionFramePath == null)
                             MissionFramePath = texturePath;
                     }
                 }
@@ -91,19 +88,30 @@ namespace EMT.Services
             }
         }
 
-        private void LoadTextColors(GfxFileModel gfxFileData)
+        private void LoadTextColors(ScriptNode gfxFileData)
         {
-            var colors = gfxFileData.OtherGfx.FirstOrDefault(b => b.Name.Equals("bitmapfonts"))
-                ?.Nodes.FirstOrDefault(n => n.Name.Equals("textcolors"))?.Nodes;
-
+            var colors = gfxFileData.Child("bitmapfonts")?.Child("textcolors")?.Children;
             if (colors == null)
                 return;
 
-            foreach (var color in colors)
+            foreach (ScriptNode color in colors.Where(color => color.IsGroup && color.Name.Length > 0))
             {
-                _textColors.Add(new ColorKey(color.Name[0], color.Colors));
+                _textColors.Add(new ColorKey(color.Name[0], color.Children!.Select(rgb => rgb.Name).ToList()));
             }
         }
+
+        private static IEnumerable<ScriptNode> Descendants(ScriptNode group)
+        {
+            foreach (ScriptNode child in group.Children!.Where(child => child.IsGroup))
+            {
+                yield return child;
+                foreach (ScriptNode descendant in Descendants(child))
+                    yield return descendant;
+            }
+        }
+
+        private static string? Property(ScriptNode group, string name) =>
+            group.Children!.FirstOrDefault(node => !node.IsGroup && !node.IsBare && node.Name.Equals(name, StringComparison.OrdinalIgnoreCase))?.Value;
 
         public Bitmap? GetGfxBitmap(string? gfxName)
         {

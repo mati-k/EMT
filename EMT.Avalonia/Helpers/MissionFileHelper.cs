@@ -1,21 +1,17 @@
+using EMT.Helpers.Script;
 using EMT.Models;
-using Pdoxcl2Sharp;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 
 namespace EMT.Helpers
 {
     public class MissionLoadResult
     {
         public required MissionFileModel MissionFile { get; init; }
-
-        /// <summary>
-        /// Localisation entries not belonging to any mission, written back unchanged on save.
-        /// </summary>
-        public required Dictionary<string, string> UnconnectedLocalisation { get; init; }
+        public required Localisation Localisation { get; init; }
     }
 
     public static class MissionFileHelper
@@ -26,94 +22,98 @@ namespace EMT.Helpers
             MissionFileModel missionFile;
             try
             {
-                using (FileStream fileStream = File.OpenRead(config.MissionFile))
-                {
-                    missionFile = ParadoxParser.Parse(fileStream, new MissionFileModel());
-                    missionFile.FileName = config.MissionFile;
-                }
+                missionFile = MissionFileModel.Load(TextFile.ReadScript(config.MissionFile));
+                missionFile.FileName = config.MissionFile;
             }
             catch (Exception e)
             {
                 Log.Error(e, "Loading mission file");
-                throw new UserFacingException("Error loading mission file", e);
+                throw new UserFacingException($"Error loading mission file: {e.Message}", e);
             }
 
-            Dictionary<string, string> unconnected = new Dictionary<string, string>();
+            Localisation localisation;
             try
             {
-                Dictionary<string, string> localisation = new Dictionary<string, string>();
-                using (StreamReader reader = new StreamReader(File.OpenRead(config.LocalisationFile)))
+                localisation = Localisation.Load(config.LocalisationFile);
+                foreach (MissionModel mission in missionFile.Branches.SelectMany(branch => branch.Missions))
                 {
-                    foreach (var tuple in Localisation.Read(reader))
-                    {
-                        if (!localisation.TryAdd(tuple.Item1, tuple.Item2))
-                            Log.Warning("Duplicate localisation: {Key} = {Value}", tuple.Item1, tuple.Item2);
-                    }
-                }
+                    if (localisation.TryGet(mission.Name + "_title", out string title))
+                        mission.Title = title;
 
-                HashSet<string> used = new HashSet<string>();
-                foreach (MissionBranchModel branch in missionFile.Branches)
-                {
-                    foreach (MissionModel mission in branch.Missions)
-                    {
-                        if (localisation.TryGetValue(mission.Name + "_title", out string? title))
-                        {
-                            mission.Title = title;
-                            used.Add(mission.Name + "_title");
-                        }
-
-                        if (localisation.TryGetValue(mission.Name + "_desc", out string? description))
-                        {
-                            mission.Description = description;
-                            used.Add(mission.Name + "_desc");
-                        }
-                    }
-                }
-
-                foreach (var entry in localisation)
-                {
-                    if (!used.Contains(entry.Key))
-                        unconnected.Add(entry.Key, entry.Value);
+                    if (localisation.TryGet(mission.Name + "_desc", out string description))
+                        mission.Description = description;
                 }
             }
             catch (Exception e)
             {
                 Log.Error(e, "Loading localisation file");
-                throw new UserFacingException("Error loading localisation file", e);
+                throw new UserFacingException($"Error loading localisation file: {e.Message}", e);
             }
 
-            return new MissionLoadResult { MissionFile = missionFile, UnconnectedLocalisation = unconnected };
+            return new MissionLoadResult { MissionFile = missionFile, Localisation = localisation };
         }
 
         /// <summary>
         /// Saves both files. Each file is backed up first and restored if writing fails.
         /// </summary>
         /// <returns>Error messages, empty if everything was saved</returns>
-        public static List<string> Save(ConfigData config, MissionFileModel missionFile, Dictionary<string, string> unconnectedLocalisation)
+        public static List<string> Save(ConfigData config, MissionLoadResult loaded)
         {
             List<string> errors = new List<string>();
+            MissionFileModel missionFile = loaded.MissionFile;
 
-            SafeWrite(config.MissionFile, "mission", errors, stream =>
+            // Build text before touching files, so validation errors leave them as they were
+            string missionText;
+            try
             {
-                using ParadoxStreamWriter writer = new ParadoxSaverCustom(stream);
-                missionFile.Write(writer);
-            });
+                missionText = MissionFileWriter.Render(missionFile);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Preparing mission file");
+                errors.Add($"Nothing saved: {e.Message}");
+                return errors;
+            }
 
-            SafeWrite(config.LocalisationFile, "localisation", errors, stream =>
-            {
-                using StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(true));
-                Localisation.Write(writer, missionFile);
-                writer.WriteLine();
-                foreach (var entry in unconnectedLocalisation)
-                {
-                    writer.WriteLine(" {0}:0 \"{1}\"", entry.Key, entry.Value);
-                }
-            });
+            List<MissionModel> missions = missionFile.Branches.SelectMany(branch => branch.Missions).ToList();
+            UpdateLocalisation(loaded.Localisation, missions);
+
+            TextFile newFile = new TextFile() { Text = missionText, Encoding = missionFile.File.Encoding, NewLine = missionFile.File.NewLine };
+            bool missionSaved = SafeWrite(config.MissionFile, "mission", errors, stream => newFile.Write(stream, missionText));
+            SafeWrite(config.LocalisationFile, "localisation", errors, loaded.Localisation.Save);
+
+            if (missionSaved)
+                missionFile.MarkSaved(newFile);
 
             return errors;
         }
 
-        private static void SafeWrite(string filePath, string fileKind, List<string> errors, Action<Stream> write)
+        public static void UpdateLocalisation(Localisation localisation, IEnumerable<MissionModel> missions)
+        {
+            foreach (MissionModel mission in missions)
+            {
+                string? savedName = mission.Saved?.Name;
+                if (savedName != null && savedName != mission.Name)
+                {
+                    localisation.Rename(savedName + "_title", mission.Name + "_title");
+                    localisation.Rename(savedName + "_desc", mission.Name + "_desc");
+                }
+
+                SetIfNeeded(localisation, mission.Name + "_title", mission.Title);
+                SetIfNeeded(localisation, mission.Name + "_desc", mission.Description);
+            }
+        }
+
+        /// <summary>
+        /// Existing keys are always updated, new ones only added when there's some text.
+        /// </summary>
+        private static void SetIfNeeded(Localisation localisation, string key, string value)
+        {
+            if (localisation.TryGet(key, out _) || !string.IsNullOrEmpty(value))
+                localisation.Set(key, value);
+        }
+
+        private static bool SafeWrite(string filePath, string fileKind, List<string> errors, Action<Stream> write)
         {
             string backupName = filePath;
             while (File.Exists(backupName))
@@ -123,6 +123,7 @@ namespace EMT.Helpers
             if (hasBackup)
                 File.Copy(filePath, backupName);
 
+            bool success = true;
             try
             {
                 using FileStream stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
@@ -130,6 +131,7 @@ namespace EMT.Helpers
             }
             catch (Exception e)
             {
+                success = false;
                 Log.Error(e, "Saving {FileKind} file", fileKind);
                 errors.Add($"Error when saving {fileKind} file: {e.Message}");
 
@@ -139,6 +141,8 @@ namespace EMT.Helpers
 
             if (hasBackup)
                 File.Delete(backupName);
+
+            return success;
         }
     }
 

@@ -67,7 +67,7 @@ namespace EMT.ViewModels
                     FontColors.Add(color);
 
                 _config = config;
-                Editor = new EditorViewModel(result.MissionFile, result.UnconnectedLocalisation);
+                Editor = new EditorViewModel(result);
                 CurrentPage = Editor;
             }
             catch (UserFacingException e)
@@ -91,7 +91,7 @@ namespace EMT.ViewModels
             if (Editor == null || _config == null)
                 return;
 
-            var errors = MissionFileHelper.Save(_config, Editor.MissionFile, Editor.UnconnectedLocalisation);
+            var errors = MissionFileHelper.Save(_config, Editor.Loaded);
             if (errors.Count > 0)
             {
                 await ShowInfo(string.Join("\n\n", errors) + $"\n\nCheck error log in:\n{AppPaths.LogFolder}");

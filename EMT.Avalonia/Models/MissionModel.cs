@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using EMT.Exceptions;
-using Pdoxcl2Sharp;
+using EMT.Helpers.Script;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,7 +7,10 @@ using System.Linq;
 
 namespace EMT.Models
 {
-    public partial class MissionModel : ObservableObject, IParadoxRead, IParadoxWrite
+    /// <summary>
+    /// Mission with the fields this tool edits. Everything else (trigger, effect...) stays as text in the file.
+    /// </summary>
+    public partial class MissionModel : ObservableObject
     {
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(TitleOrName))]
@@ -30,15 +32,6 @@ namespace EMT.Models
         [ObservableProperty]
         private string _icon = "";
 
-        [ObservableProperty]
-        private GroupNodeModel? _provincesToHighlight = new GroupNodeModel() { Name = "provinces_to_highlight" };
-
-        [ObservableProperty]
-        private GroupNodeModel _trigger = new GroupNodeModel() { Name = "trigger" };
-
-        [ObservableProperty]
-        private GroupNodeModel _effect = new GroupNodeModel() { Name = "effect" };
-
         /// <summary>
         /// Required missions are kept as name-only stubs, resolved by name when needed.
         /// </summary>
@@ -59,6 +52,16 @@ namespace EMT.Models
         /// </summary>
         public MissionBranchModel? Branch { get; set; }
 
+        /// <summary>
+        /// Where the mission is in the loaded file text, null for missions added in the tool.
+        /// </summary>
+        public ScriptNode? Source { get; private set; }
+
+        /// <summary>
+        /// Values as they are in the file, so only changed ones get written.
+        /// </summary>
+        public MissionSnapshot? Saved { get; private set; }
+
         public MissionModel(MissionBranchModel branch)
         {
             this.Branch = branch;
@@ -68,69 +71,40 @@ namespace EMT.Models
         {
         }
 
-        public void TokenCallback(ParadoxParser parser, string token)
+        public List<string> RequiredMissionNames() =>
+            RequiredMissions.Select(mission => mission.Name.Trim()).Where(name => name.Length > 0).ToList();
+
+        public static MissionModel FromNode(ScriptNode node, MissionBranchModel branch)
         {
-            try
+            var mission = new MissionModel(branch) { Name = node.Name };
+
+            if (node.Child("position") is { IsGroup: false } position)
             {
-                switch (token)
-                {
-                    case "position": Position = parser.ReadInt32(); break;
-                    case "icon": Icon = parser.ReadString(); break;
-                    case "required_missions":
-                        RequiredMissions.Clear();
-                        foreach (string name in parser.ReadStringList())
-                            RequiredMissions.Add(new MissionModel() { Name = name });
-                        break;
-                    case "provinces_to_highlight": ProvincesToHighlight = parser.Parse(new GroupNodeModel() { Name = "provinces_to_highlight" }); break;
-                    case "trigger": Trigger = parser.Parse(new GroupNodeModel() { Name = "trigger" }); break;
-                    case "effect": Effect = parser.Parse(new GroupNodeModel() { Name = "effect" }); break;
-                }
+                if (!int.TryParse(position.Value, out int value))
+                    throw new FormatException($"Mission {node.Name}: position '{position.Value}' isn't a number");
+                mission.Position = value;
             }
-            catch (Exception e)
+
+            if (node.Child("icon") is { IsGroup: false } icon)
+                mission.Icon = icon.Value ?? "";
+
+            if (node.Child("required_missions") is { IsGroup: true } required)
             {
-                throw new Exception($"Mission exception, mission: {Name}  , token: {token} \n{e}");
+                foreach (ScriptNode entry in required.Children!)
+                    mission.RequiredMissions.Add(new MissionModel() { Name = entry.Name });
             }
+
+            mission.MarkSaved(node);
+            return mission;
         }
 
-        public void Write(ParadoxStreamWriter writer)
+        /// <summary>
+        /// Called after loading or saving, with the mission's place in the current file text.
+        /// </summary>
+        public void MarkSaved(ScriptNode node)
         {
-            if (String.IsNullOrWhiteSpace(Icon))
-                throw new IconException(Name);
-            writer.WriteLine("icon", Icon, ValueWrite.LeadingTabs);
-
-            if (Position <= 0)
-                throw new WrongPositionException(string.Format("Position must be greater than 0, mission: {0}", Name));
-            writer.WriteLine("position", Position.ToString(), ValueWrite.LeadingTabs);
-
-            List<MissionModel> requiredMissions = RequiredMissions.Where(mission => !String.IsNullOrWhiteSpace(mission.Name)).ToList();
-            if (requiredMissions.Count > 0)
-            {
-                if (requiredMissions.Count > 1)
-                {
-                    writer.WriteLine("required_missions = {", ValueWrite.LeadingTabs);
-                    foreach (MissionModel required in requiredMissions)
-                    {
-                        writer.WriteLine(required.Name, ValueWrite.LeadingTabs);
-                    }
-                    writer.WriteLine("}", ValueWrite.LeadingTabs);
-                }
-
-                else
-                {
-                    writer.WriteLine("required_missions = { " + requiredMissions[0].Name + " } ", ValueWrite.LeadingTabs);
-                }
-            }
-
-            if (ProvincesToHighlight != null)
-            {
-                ProvincesToHighlight.Write(writer);
-                writer.WriteLine();
-            }
-
-            Trigger.Write(writer);
-            writer.WriteLine();
-
-            Effect.Write(writer);
+            Source = node;
+            Saved = new MissionSnapshot(Name, Position, Icon, RequiredMissionNames());
         }
 
         private static bool IsRequirementLoopDFS(string startMission, HashSet<string> visited, HashSet<string> currentPath, Dictionary<string, MissionModel> missions)
@@ -163,4 +137,6 @@ namespace EMT.Models
             return IsRequirementLoopDFS(missionName, new HashSet<string>(), new HashSet<string>(), missions);
         }
     }
+
+    public record MissionSnapshot(string Name, int Position, string Icon, List<string> RequiredMissions);
 }

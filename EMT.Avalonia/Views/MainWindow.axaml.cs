@@ -1,15 +1,18 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using EMT.Helpers;
 using EMT.Models;
 using EMT.ViewModels;
 using Serilog;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace EMT.Views
 {
@@ -18,6 +21,26 @@ namespace EMT.Views
         public MainWindow()
         {
             InitializeComponent();
+            AddHandler(MenuItem.SubmenuOpenedEvent, Submenu_Opened);
+        }
+
+        /// <summary>
+        /// Gives dropdowns an edge, otherwise they blend into the white panels below.
+        /// Theme sets the border in its template, which styles can't override, so it's set directly.
+        /// </summary>
+        private void Submenu_Opened(object? sender, RoutedEventArgs e)
+        {
+            if (e.Source is not MenuItem { Parent: Menu } menuItem)
+                return;
+
+            var popup = menuItem.GetVisualDescendants().OfType<Popup>().FirstOrDefault(child => child.Name == "PART_Popup");
+            var border = (popup?.Child as Visual)?.GetVisualDescendants().OfType<Border>().FirstOrDefault(child => child.Name == "PART_MainBorder");
+            if (border == null)
+                return;
+
+            border.BorderBrush = new SolidColorBrush(Color.Parse("#59000000"));
+            border.BorderThickness = new Thickness(1);
+            border.CornerRadius = new CornerRadius(4);
         }
 
         protected override void OnDataContextChanged(EventArgs e)

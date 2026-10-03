@@ -12,7 +12,6 @@ namespace EMT.Models
     {
         public char Key { get; }
         public IBrush Brush { get; }
-        public string Sample => $"§{Key} Text Here §!";
 
         public ColorKey(char key, List<string> rgb)
         {

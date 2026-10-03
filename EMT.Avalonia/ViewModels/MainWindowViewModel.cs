@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
@@ -5,6 +6,8 @@ using DialogHostAvalonia;
 using EMT.Helpers;
 using EMT.Models;
 using EMT.Services;
+using Material.Styles.Controls;
+using Material.Styles.Models;
 using Serilog;
 using System;
 using System.Collections.ObjectModel;
@@ -15,6 +18,7 @@ namespace EMT.ViewModels
     public partial class MainWindowViewModel : ViewModelBase
     {
         public const string DialogHostId = "MainDialogHost";
+        public const string SnackbarHostName = "Root";
 
         [ObservableProperty]
         private ViewModelBase _currentPage;
@@ -108,7 +112,18 @@ namespace EMT.ViewModels
         {
             var clipboard = Ioc.Default.GetService<IClipboardService>();
             if (clipboard != null)
+            {
                 await clipboard.SetTextAsync($"§{color.Key} §!");
+                Notify($"Copied §{color.Key} §! to clipboard");
+            }
+        }
+
+        /// <summary>
+        /// Short message at the bottom of the window.
+        /// </summary>
+        private static void Notify(string text)
+        {
+            SnackbarHost.Post(new SnackbarModel(text, TimeSpan.FromSeconds(2.5)), SnackbarHostName, DispatcherPriority.Normal);
         }
 
         private static async Task ShowInfo(string text)

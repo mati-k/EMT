@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
         x:Class="EMT.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -34,24 +35,26 @@
   </Window.KeyBindings>
 
   <dialogHostAvalonia:DialogHost Identifier="MainDialogHost" DialogMargin="16" dialogHostAvalonia:DialogHostStyle.CornerRadius="8">
-    <DockPanel>
-      <!-- Only useful once files are loaded -->
-      <Menu DockPanel.Dock="Top" IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <MenuItem Header="_File">
-          <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGesture="Ctrl+S"/>
-        </MenuItem>
-        <MenuItem x:Name="FancyTextMenu" Header="Fancy _Text" ToolTip.Tip="Click a colour to copy its code to clipboard"/>
-      </Menu>
+    <controls:SnackbarHost HostName="Root" SnackbarHorizontalAlignment="Center" SnackbarVerticalAlignment="Bottom">
+      <DockPanel>
+        <!-- Only useful once files are loaded -->
+        <Menu DockPanel.Dock="Top" IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <MenuItem Header="_File">
+            <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGesture="Ctrl+S"/>
+          </MenuItem>
+          <MenuItem x:Name="FancyTextMenu" Header="Fancy _Text" ToolTip.Tip="Text colours for titles and descriptions, click one to copy its code"/>
+        </Menu>
 
-      <Panel>
-        <TransitioningContentControl Content="{Binding CurrentPage}" Margin="16"/>
-        <Panel IsVisible="{Binding IsBusy}" Background="#80FFFFFF">
-          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-            <ProgressBar IsIndeterminate="True" Width="240"/>
-            <TextBlock Text="Loading files..." HorizontalAlignment="Center"/>
-          </StackPanel>
+        <Panel>
+          <TransitioningContentControl Content="{Binding CurrentPage}" Margin="16"/>
+          <Panel IsVisible="{Binding IsBusy}" Background="#80FFFFFF">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+              <ProgressBar IsIndeterminate="True" Width="240"/>
+              <TextBlock Text="Loading files..." HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Panel>
         </Panel>
-      </Panel>
-    </DockPanel>
+      </DockPanel>
+    </controls:SnackbarHost>
   </dialogHostAvalonia:DialogHost>
 </Window>

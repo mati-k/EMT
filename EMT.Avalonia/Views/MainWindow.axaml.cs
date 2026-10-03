@@ -1,4 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
 using EMT.Models;
 using EMT.ViewModels;
 using System;
@@ -31,14 +34,59 @@ namespace EMT.Views
             {
                 FancyTextMenu.Items.Add(new MenuItem
                 {
-                    Header = color.Sample,
-                    Foreground = color.Brush,
+                    Header = ColorHeader(color),
                     Command = viewModel.CopyFontColorCommand,
                     CommandParameter = color,
                 });
             }
 
             FancyTextMenu.IsEnabled = viewModel.FontColors.Count > 0;
+        }
+
+        /// <summary>
+        /// Sample on the game's dark background, so light colours stay readable, with the code next to it.
+        /// </summary>
+        private static Control ColorHeader(ColorKey color)
+        {
+            return new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 10,
+                Children =
+                {
+                    // Swatch keeps dark colours recognisable
+                    new Border
+                    {
+                        Background = color.Brush,
+                        BorderBrush = Brushes.Gray,
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(3),
+                        Width = 16,
+                        Height = 16,
+                        VerticalAlignment = VerticalAlignment.Center,
+                    },
+                    new Border
+                    {
+                        Background = new SolidColorBrush(Color.Parse("#FF1E2A3A")),
+                        CornerRadius = new CornerRadius(4),
+                        Padding = new Thickness(10, 3),
+                        Width = 96,
+                        Child = new TextBlock
+                        {
+                            Text = "Sample text",
+                            Foreground = color.Brush,
+                            FontWeight = FontWeight.SemiBold,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                        },
+                    },
+                    new TextBlock
+                    {
+                        Text = $"§{color.Key} … §!",
+                        FontFamily = new FontFamily("Consolas, Menlo, monospace"),
+                        VerticalAlignment = VerticalAlignment.Center,
+                    },
+                },
+            };
         }
     }
 }

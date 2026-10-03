@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EMT.ViewModels"
+             xmlns:models="using:EMT.Models"
+             xmlns:views="using:EMT.Views"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:DataType="vm:EditorViewModel"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="700"
+             x:Class="EMT.Views.EditorView">
+  <Grid ColumnDefinitions="280,4,*,4,480" RowDefinitions="*,Auto">
+    <TreeView x:Name="BranchTree" Grid.Column="0" Grid.Row="0"
+              ItemsSource="{Binding MissionFile.Branches}"
+              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+              DragDrop.AllowDrop="True">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="models:MissionBranchModel" ItemsSource="{Binding Missions}">
+          <StackPanel Orientation="Horizontal" Spacing="8" Background="Transparent">
+            <CheckBox IsChecked="{Binding IsActive}" ToolTip.Tip="Show in preview" Padding="0" MinHeight="0"/>
+            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            <StackPanel.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Add Mission" Click="AddMission_Click"/>
+                <MenuItem Header="Remove Branch" Click="RemoveBranch_Click"/>
+              </ContextMenu>
+            </StackPanel.ContextMenu>
+          </StackPanel>
+        </TreeDataTemplate>
+
+        <DataTemplate DataType="models:MissionModel">
+          <TextBlock Text="{Binding Name}" Background="Transparent">
+            <TextBlock.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Remove Mission" Click="RemoveMission_Click"/>
+              </ContextMenu>
+            </TextBlock.ContextMenu>
+          </TextBlock>
+        </DataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+
+    <StackPanel Grid.Column="0" Grid.Row="1" Spacing="4" Margin="0,8,0,0">
+      <Button Content="Add Branch" Command="{Binding AddBranchCommand}" HorizontalAlignment="Stretch"/>
+      <TextBlock Text="Drag to reorder, right click for more options" Classes="Caption" TextWrapping="Wrap"/>
+    </StackPanel>
+
+    <GridSplitter Grid.Column="1" Grid.RowSpan="2" ResizeDirection="Columns"/>
+
+    <views:MissionTreeView Grid.Column="2" Grid.RowSpan="2" DataContext="{Binding TreeViewModel}"/>
+
+    <GridSplitter Grid.Column="3" Grid.RowSpan="2" ResizeDirection="Columns"/>
+
+    <ContentControl Grid.Column="4" Grid.RowSpan="2" Content="{Binding DetailsViewModel}"/>
+  </Grid>
+</UserControl>

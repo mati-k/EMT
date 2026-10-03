@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EMT.ViewModels"
+             xmlns:views="using:EMT.Views"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             x:DataType="vm:ConfigurationViewModel"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
+             x:Class="EMT.Views.ConfigurationView">
+  <Design.DataContext>
+    <vm:ConfigurationViewModel />
+  </Design.DataContext>
+
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer Grid.Row="0">
+      <StackPanel HorizontalAlignment="Center" Margin="24" Spacing="12" MinWidth="700">
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Mission File" Classes="Headline6"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Pick file" Click="MissionFile_Click" Width="160"/>
+              <Button Content="New file" Click="NewMissionFile_Click" Width="160" Classes="Outline"/>
+            </StackPanel>
+            <TextBlock Text="{Binding MissionFile}" Classes="Body2"/>
+          </StackPanel>
+        </controls:Card>
+
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Localisation File" Classes="Headline6"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Pick file" Click="LocalisationFile_Click" Width="160"/>
+              <Button Content="New file" Click="NewLocalisationFile_Click" Width="160" Classes="Outline"/>
+            </StackPanel>
+            <TextBlock Text="{Binding LocalisationFile}" Classes="Body2"/>
+          </StackPanel>
+        </controls:Card>
+
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Vanilla Folder" Classes="Headline6"/>
+            <TextBlock Text="Europa Universalis IV installation folder" Classes="Caption"/>
+            <Button Content="Pick folder" Click="VanillaFolder_Click" Width="160" HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding VanillaFolder}" Classes="Body2"/>
+          </StackPanel>
+        </controls:Card>
+
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Mod Folder" Classes="Headline6"/>
+            <Button Content="Pick folder" Click="ModFolder_Click" Width="160" HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding ModFolder}" Classes="Body2"/>
+          </StackPanel>
+        </controls:Card>
+
+        <controls:Card Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Default Potential" Classes="Headline6"/>
+            <TextBlock Text="Used for newly created branches" Classes="Caption"/>
+            <views:NodeTreeEditor Root="{Binding DefaultPotential}"/>
+          </StackPanel>
+        </controls:Card>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Button Content="Continue" Command="{Binding ContinueCommand}" Grid.Row="1" HorizontalAlignment="Center" Padding="24,12" Margin="12"/>
+  </Grid>
+</UserControl>

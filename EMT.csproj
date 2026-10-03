@@ -24,6 +24,8 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <!-- Cross-platform Avalonia port lives in its own project -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);EMT.Avalonia/**</DefaultItemExcludes>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>

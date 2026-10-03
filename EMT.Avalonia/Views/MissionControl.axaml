@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:EMT.Models"
+             xmlns:views="using:EMT.Views"
+             xmlns:converters="using:EMT.Converters"
+             x:DataType="models:MissionModel"
+             Width="104" Height="122" Cursor="Hand"
+             x:Class="EMT.Views.MissionControl">
+  <Panel>
+    <Image Source="{Binding Icon, Converter={x:Static converters:DDSConverter.FromGfxName}}"
+           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="22,20,0,0" Width="59" Height="63"/>
+    <Image Source="{Binding Converter={x:Static converters:DDSConverter.MissionFrame}}"
+           HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="None"/>
+    <views:RichTextBlock RichText="{Binding TitleOrName}" TextAlignment="Center" TextWrapping="Wrap"
+                         HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,86,0,0" Width="96"
+                         Foreground="White" FontWeight="Bold" FontSize="12" IsHitTestVisible="False"/>
+  </Panel>
+</UserControl>

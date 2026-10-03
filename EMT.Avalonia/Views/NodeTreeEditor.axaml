@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="using:EMT.Models"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="EMT.Views.NodeTreeEditor">
+  <UserControl.Styles>
+    <Style Selector="Button.node">
+      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Width" Value="28"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TextBox.node">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Padding" Value="4,2"/>
+      <Setter Property="MinHeight" Value="28"/>
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="4">
+    <StackPanel Orientation="Horizontal" Spacing="4">
+      <TextBlock x:Name="HeaderText" Classes="Subtitle1" VerticalAlignment="Center" Margin="0,0,8,0"/>
+      <Button Classes="node Flat" Click="AddRootValue_Click" ToolTip.Tip="Add value"
+              Content="{materialIcons:MaterialIconExt Kind=Plus, IconSize=18}"/>
+      <Button Classes="node Flat" Click="AddRootGroup_Click" ToolTip.Tip="Add group"
+              Content="{materialIcons:MaterialIconExt Kind=CodeBraces, IconSize=18}"/>
+    </StackPanel>
+
+    <TreeView x:Name="Tree">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="models:GroupNodeModel" ItemsSource="{Binding Nodes}">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBox Classes="node" Text="{Binding Name}" MinWidth="160" PlaceholderText="group"/>
+            <TextBlock Text="= {" VerticalAlignment="Center" Margin="4,0"/>
+            <Button Classes="node Flat" Click="AddValue_Click" ToolTip.Tip="Add value"
+                    Content="{materialIcons:MaterialIconExt Kind=Plus, IconSize=18}"/>
+            <Button Classes="node Flat" Click="AddGroup_Click" ToolTip.Tip="Add group"
+                    Content="{materialIcons:MaterialIconExt Kind=CodeBraces, IconSize=18}"/>
+            <Button Classes="node Flat" Click="Remove_Click" ToolTip.Tip="Remove group"
+                    Content="{materialIcons:MaterialIconExt Kind=Close, IconSize=18}"/>
+          </StackPanel>
+        </TreeDataTemplate>
+
+        <DataTemplate DataType="models:ValueNodeModel">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBox Classes="node" Text="{Binding Name}" MinWidth="160" PlaceholderText="key"/>
+            <TextBlock Text="=" VerticalAlignment="Center" Margin="4,0"/>
+            <TextBox Classes="node" Text="{Binding Value}" MinWidth="160" PlaceholderText="value"/>
+            <Button Classes="node Flat" Click="Remove_Click" ToolTip.Tip="Remove value"
+                    Content="{materialIcons:MaterialIconExt Kind=Close, IconSize=18}"/>
+          </StackPanel>
+        </DataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+  </StackPanel>
+</UserControl>

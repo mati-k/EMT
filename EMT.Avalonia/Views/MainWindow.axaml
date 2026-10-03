@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:EMT.ViewModels"
+        xmlns:model="using:EMT.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+        x:Class="EMT.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1400" Height="850"
+        Title="EU4 Mission Tool">
+
+  <Window.Styles>
+    <Style Selector="Menu">
+      <Setter Property="Background" Value="{DynamicResource MaterialPrimaryMidBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource MaterialPrimaryMidForegroundBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="model:InfoDialogData">
+      <StackPanel Spacing="12" MaxWidth="480">
+        <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+        <Button Content="Ok" Width="120" HorizontalAlignment="Center"
+                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"/>
+      </StackPanel>
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+    <KeyBinding Gesture="Meta+S" Command="{Binding SaveCommand}" />
+  </Window.KeyBindings>
+
+  <dialogHostAvalonia:DialogHost Identifier="MainDialogHost" DialogMargin="16" dialogHostAvalonia:DialogHostStyle.CornerRadius="8">
+    <DockPanel>
+      <Menu DockPanel.Dock="Top">
+        <MenuItem Header="_File">
+          <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGesture="Ctrl+S"/>
+        </MenuItem>
+        <MenuItem x:Name="FancyTextMenu" Header="Fancy _Text" ToolTip.Tip="Click a colour to copy its code to clipboard"/>
+      </Menu>
+
+      <Panel>
+        <TransitioningContentControl Content="{Binding CurrentPage}" Margin="16"/>
+        <Panel IsVisible="{Binding IsBusy}" Background="#80FFFFFF">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+            <ProgressBar IsIndeterminate="True" Width="240"/>
+            <TextBlock Text="Loading files..." HorizontalAlignment="Center"/>
+          </StackPanel>
+        </Panel>
+      </Panel>
+    </DockPanel>
+  </dialogHostAvalonia:DialogHost>
+</Window>

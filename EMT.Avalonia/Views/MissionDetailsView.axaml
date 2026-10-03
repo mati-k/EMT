@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EMT.ViewModels"
+             xmlns:models="using:EMT.Models"
+             xmlns:views="using:EMT.Views"
+             xmlns:converters="using:EMT.Converters"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:assist="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+             x:DataType="vm:MissionDetailsViewModel"
+             x:Class="EMT.Views.MissionDetailsView">
+  <ScrollViewer>
+    <StackPanel Spacing="8" Margin="12,0">
+      <TextBox Text="{Binding Mission.Name}" assist:TextFieldAssist.Label="Mission name"/>
+      <TextBox Text="{Binding Mission.Title}" assist:TextFieldAssist.Label="Mission title"/>
+
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <TextBox Text="{Binding Mission.Position}" assist:TextFieldAssist.Label="Position" MinWidth="100"/>
+        <TextBlock Text="{Binding Mission.RealPosition, StringFormat='Shown at: {0}'}" VerticalAlignment="Center" Classes="Caption"
+                   ToolTip.Tip="Missions are pushed down below their required missions"/>
+      </StackPanel>
+
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Image Grid.Column="0" Source="{Binding Mission.Icon, Converter={x:Static converters:DDSConverter.FromGfxName}}"
+               Width="59" Height="63" Margin="0,0,8,0"/>
+        <TextBox Grid.Column="1" Text="{Binding Mission.Icon}" assist:TextFieldAssist.Label="Mission icon" VerticalAlignment="Center"/>
+        <Button Grid.Column="2" Content="GFX Picker" Command="{Binding PickGfxCommand}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+      </Grid>
+
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <TextBlock Text="Required missions" Classes="Subtitle1" VerticalAlignment="Center"/>
+        <Button Classes="Flat" Padding="4" Command="{Binding AddRequiredMissionCommand}" ToolTip.Tip="Add required mission"
+                Content="{materialIcons:MaterialIconExt Kind=Plus, IconSize=18}"/>
+      </StackPanel>
+      <ItemsControl x:Name="RequiredMissions" ItemsSource="{Binding Mission.RequiredMissions}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="models:MissionModel">
+            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+              <TextBox Text="{Binding Name}" PlaceholderText="mission name"/>
+              <Button Grid.Column="1" Classes="Flat" Padding="4" ToolTip.Tip="Remove"
+                      Command="{Binding #RequiredMissions.((vm:MissionDetailsViewModel)DataContext).RemoveRequiredMissionCommand}"
+                      CommandParameter="{Binding}"
+                      Content="{materialIcons:MaterialIconExt Kind=Close, IconSize=18}"/>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <TextBox Text="{Binding Mission.Description}" assist:TextFieldAssist.Label="Description"
+               TextWrapping="Wrap" AcceptsReturn="False" MinHeight="80"/>
+      <Border Background="#FF304976" Padding="8" CornerRadius="4">
+        <views:RichTextBlock RichText="{Binding Mission.Description}" TextWrapping="Wrap" Foreground="White" FontWeight="Bold"/>
+      </Border>
+
+      <views:NodeTreeEditor Root="{Binding Mission.ProvincesToHighlight}" Header="Provinces to highlight"/>
+      <views:NodeTreeEditor Root="{Binding Mission.Trigger}" Header="Trigger"/>
+      <views:NodeTreeEditor Root="{Binding Mission.Effect}" Header="Effect"/>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

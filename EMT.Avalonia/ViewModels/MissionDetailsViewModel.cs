@@ -1,6 +1,10 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DialogHostAvalonia;
 using EMT.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EMT.ViewModels
@@ -9,9 +13,24 @@ namespace EMT.ViewModels
     {
         public MissionModel Mission { get; }
 
+        /// <summary>
+        /// Other missions in the file, suggested when adding requirements.
+        /// </summary>
+        public List<string> OtherMissionNames { get; }
+
+        [ObservableProperty]
+        private string _requiredMissionInput = "";
+
         public MissionDetailsViewModel(MissionModel mission)
         {
             Mission = mission;
+            OtherMissionNames = mission.Branch?.MissionFile.Branches
+                .SelectMany(branch => branch.Missions)
+                .Where(other => other != mission)
+                .Select(other => other.Name)
+                .Distinct()
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? [];
         }
 
         [RelayCommand]
@@ -25,9 +44,15 @@ namespace EMT.ViewModels
         }
 
         [RelayCommand]
-        public void AddRequiredMission()
+        public void AddRequiredMission(string? name)
         {
-            Mission.RequiredMissions.Add(new MissionModel());
+            name = (name ?? RequiredMissionInput).Trim();
+            RequiredMissionInput = "";
+
+            if (name.Length == 0 || name == Mission.Name || Mission.RequiredMissions.Any(required => required.Name == name))
+                return;
+
+            Mission.RequiredMissions.Add(new MissionModel() { Name = name });
         }
 
         [RelayCommand]

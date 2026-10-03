@@ -3,54 +3,142 @@
              xmlns:vm="using:EMT.ViewModels"
              xmlns:models="using:EMT.Models"
              xmlns:views="using:EMT.Views"
+             xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-             xmlns:assist="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
              x:DataType="vm:MissionDetailsViewModel"
              x:Class="EMT.Views.MissionDetailsView">
+  <UserControl.Styles>
+    <Style Selector="controls|Card">
+      <Setter Property="Padding" Value="12"/>
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{DynamicResource MaterialPrimaryMidBrush}"/>
+      <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+    <Style Selector="StackPanel.field">
+      <Setter Property="Spacing" Value="2"/>
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="#1A3F51B5"/>
+      <Setter Property="BorderBrush" Value="#553F51B5"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="Padding" Value="10,2,2,2"/>
+      <Setter Property="Margin" Value="0,0,6,6"/>
+    </Style>
+  </UserControl.Styles>
+
   <ScrollViewer>
-    <StackPanel Spacing="8" Margin="12,0">
-      <TextBox Text="{Binding Mission.Name}" assist:TextFieldAssist.Label="Mission name"/>
-      <TextBox Text="{Binding Mission.Title}" assist:TextFieldAssist.Label="Mission title"/>
+    <StackPanel Spacing="12" Margin="12,0,12,12">
 
-      <StackPanel Orientation="Horizontal" Spacing="12">
-        <TextBox Text="{Binding Mission.Position}" assist:TextFieldAssist.Label="Position" MinWidth="100"/>
-        <TextBlock Text="{Binding Mission.RealPosition, StringFormat='Shown at: {0}'}" VerticalAlignment="Center" Classes="Caption"
-                   ToolTip.Tip="Missions are pushed down below their required missions"/>
-      </StackPanel>
-
-      <Grid ColumnDefinitions="Auto,*,Auto">
-        <views:GfxImage Grid.Column="0" GfxName="{Binding Mission.Icon}"
-               Width="59" Height="63" Margin="0,0,8,0"/>
-        <TextBox Grid.Column="1" Text="{Binding Mission.Icon}" assist:TextFieldAssist.Label="Mission icon" VerticalAlignment="Center"/>
-        <Button Grid.Column="2" Content="GFX Picker" Command="{Binding PickGfxCommand}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+      <!-- Header: mission as it looks in game -->
+      <Grid ColumnDefinitions="Auto,*">
+        <Border Background="#FF1E2A3A" CornerRadius="6" Padding="10,8">
+          <views:MissionControl DataContext="{Binding Mission}" IsHitTestVisible="False" Cursor="Arrow"/>
+        </Border>
+        <StackPanel Grid.Column="1" Margin="16,4,0,0" Spacing="4" VerticalAlignment="Top">
+          <views:RichTextBlock RichText="{Binding Mission.TitleOrName}" Classes="Headline6" TextWrapping="Wrap"/>
+          <SelectableTextBlock Text="{Binding Mission.Name}" FontFamily="Consolas, Menlo, monospace" FontSize="12" Opacity="0.7"/>
+          <Border Classes="chip" HorizontalAlignment="Left" Padding="10,2" Margin="0,6,0,0">
+            <TextBlock FontSize="12" Text="{Binding Mission.RealPosition, StringFormat='Shown in row {0}'}"
+                       ToolTip.Tip="Missions are pushed below the missions they require"/>
+          </Border>
+        </StackPanel>
       </Grid>
 
-      <StackPanel Orientation="Horizontal" Spacing="4">
-        <TextBlock Text="Required missions" Classes="Subtitle1" VerticalAlignment="Center"/>
-        <Button Classes="Flat" Padding="4" Command="{Binding AddRequiredMissionCommand}" ToolTip.Tip="Add required mission"
-                Content="{materialIcons:MaterialIconExt Kind=Plus, IconSize=18}"/>
-      </StackPanel>
-      <ItemsControl x:Name="RequiredMissions" ItemsSource="{Binding Mission.RequiredMissions}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate DataType="models:MissionModel">
-            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-              <TextBox Text="{Binding Name}" PlaceholderText="mission name"/>
-              <Button Grid.Column="1" Classes="Flat" Padding="4" ToolTip.Tip="Remove"
-                      Command="{Binding #RequiredMissions.((vm:MissionDetailsViewModel)DataContext).RemoveRequiredMissionCommand}"
-                      CommandParameter="{Binding}"
-                      Content="{materialIcons:MaterialIconExt Kind=Close, IconSize=18}"/>
-            </Grid>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <controls:Card>
+        <StackPanel Spacing="10">
+          <TextBlock Classes="section" Text="MISSION"/>
+          <Grid ColumnDefinitions="*,12,96">
+            <StackPanel Classes="field">
+              <TextBlock Classes="label" Text="Key"/>
+              <TextBox Classes="outline dense" Text="{Binding Mission.Name}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Classes="field">
+              <TextBlock Classes="label" Text="Position"/>
+              <TextBox Classes="outline dense" Text="{Binding Mission.Position}"/>
+            </StackPanel>
+          </Grid>
+          <StackPanel Classes="field">
+            <TextBlock Classes="label" Text="Title"/>
+            <TextBox Classes="outline dense" Text="{Binding Mission.Title}"/>
+          </StackPanel>
+        </StackPanel>
+      </controls:Card>
 
-      <TextBox Text="{Binding Mission.Description}" assist:TextFieldAssist.Label="Description"
-               TextWrapping="Wrap" AcceptsReturn="False" MinHeight="80"/>
-      <Border Background="#FF304976" Padding="8" CornerRadius="4">
-        <views:RichTextBlock RichText="{Binding Mission.Description}" TextWrapping="Wrap" Foreground="White" FontWeight="Bold"/>
-      </Border>
+      <controls:Card>
+        <StackPanel Spacing="10">
+          <TextBlock Classes="section" Text="ICON"/>
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Border Background="#FF1E2A3A" CornerRadius="4" Padding="4" VerticalAlignment="Center">
+              <views:GfxImage GfxName="{Binding Mission.Icon}" Width="59" Height="63"/>
+            </Border>
+            <StackPanel Grid.Column="1" Classes="field" VerticalAlignment="Center" Margin="12,0">
+              <TextBlock Classes="label" Text="Sprite name"/>
+              <TextBox Classes="outline dense" Text="{Binding Mission.Icon}"/>
+            </StackPanel>
+            <Button Grid.Column="2" Command="{Binding PickGfxCommand}" VerticalAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <materialIcons:MaterialIcon Kind="ImageSearchOutline" Width="18" Height="18"/>
+                <TextBlock Text="Pick" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+          </Grid>
+        </StackPanel>
+      </controls:Card>
 
-      <TextBlock Classes="Caption" TextWrapping="Wrap"
+      <controls:Card>
+        <StackPanel Spacing="10">
+          <TextBlock Classes="section" Text="REQUIRED MISSIONS"/>
+          <ItemsControl x:Name="RequiredMissions" ItemsSource="{Binding Mission.RequiredMissions}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="models:MissionModel">
+                <Border Classes="chip">
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13"/>
+                    <Button Classes="Flat" Padding="2" MinHeight="0" Height="22" Width="22" ToolTip.Tip="Remove"
+                            Command="{Binding #RequiredMissions.((vm:MissionDetailsViewModel)DataContext).RemoveRequiredMissionCommand}"
+                            CommandParameter="{Binding}"
+                            Content="{materialIcons:MaterialIconExt Kind=Close, IconSize=14}"/>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="None, mission is available from the start" FontSize="12" Opacity="0.6"
+                     IsVisible="{Binding !Mission.RequiredMissions.Count}"/>
+          <AutoCompleteBox x:Name="RequiredInput" PlaceholderText="Add required mission, Enter to confirm"
+                           ItemsSource="{Binding OtherMissionNames}" Text="{Binding RequiredMissionInput}"
+                           FilterMode="ContainsOrdinal" MinimumPrefixLength="1" MaxDropDownHeight="240"
+                           KeyDown="RequiredInput_KeyDown" DropDownClosed="RequiredInput_DropDownClosed"/>
+        </StackPanel>
+      </controls:Card>
+
+      <controls:Card>
+        <StackPanel Spacing="10">
+          <TextBlock Classes="section" Text="DESCRIPTION"/>
+          <StackPanel Classes="field">
+            <TextBlock Classes="label" Text="Text, use \n for a new line"/>
+            <TextBox Classes="outline dense" Text="{Binding Mission.Description}" TextWrapping="Wrap" AcceptsReturn="False" MinHeight="96"/>
+          </StackPanel>
+          <Border Background="#FF304976" Padding="10" CornerRadius="4">
+            <views:RichTextBlock RichText="{Binding Mission.Description}" TextWrapping="Wrap" Foreground="White" FontWeight="SemiBold"/>
+          </Border>
+        </StackPanel>
+      </controls:Card>
+
+      <TextBlock FontSize="12" Opacity="0.6" TextWrapping="Wrap"
                  Text="Trigger, effect and other mission content are kept as they are in the file, edit them in your text editor."/>
     </StackPanel>
   </ScrollViewer>

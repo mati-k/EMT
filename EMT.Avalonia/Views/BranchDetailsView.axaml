@@ -1,15 +1,50 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:EMT.ViewModels"
-             xmlns:assist="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+             xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
              x:DataType="vm:BranchDetailsViewModel"
              x:Class="EMT.Views.BranchDetailsView">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{DynamicResource MaterialPrimaryMidBrush}"/>
+      <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+    <Style Selector="StackPanel.field">
+      <Setter Property="Spacing" Value="2"/>
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+  </UserControl.Styles>
+
   <ScrollViewer>
-    <StackPanel Spacing="8" Margin="12,0">
-      <TextBox Text="{Binding Branch.Name}" assist:TextFieldAssist.Label="Branch name"/>
-      <TextBox Text="{Binding Branch.Slot}" assist:TextFieldAssist.Label="Branch slot"/>
-      <CheckBox IsChecked="{Binding Branch.IsActive}" Content="Show in preview"/>
-      <TextBlock Classes="Caption" TextWrapping="Wrap"
+    <StackPanel Spacing="12" Margin="12,0,12,12">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{Binding Branch.Name}" Classes="Headline6" TextWrapping="Wrap"/>
+        <TextBlock Text="{Binding Branch.Missions.Count, StringFormat='{}{0} missions'}" FontSize="12" Opacity="0.7"/>
+      </StackPanel>
+
+      <controls:Card Padding="12">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="section" Text="BRANCH"/>
+          <Grid ColumnDefinitions="*,12,96">
+            <StackPanel Classes="field">
+              <TextBlock Classes="label" Text="Key"/>
+              <TextBox Classes="outline dense" Text="{Binding Branch.Name}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Classes="field">
+              <TextBlock Classes="label" Text="Slot"/>
+              <TextBox Classes="outline dense" Text="{Binding Branch.Slot}"/>
+            </StackPanel>
+          </Grid>
+          <CheckBox IsChecked="{Binding Branch.IsActive}" Content="Show in preview"/>
+        </StackPanel>
+      </controls:Card>
+
+      <TextBlock FontSize="12" Opacity="0.6" TextWrapping="Wrap"
                  Text="Potential and other branch settings are kept as they are in the file, edit them in your text editor."/>
     </StackPanel>
   </ScrollViewer>

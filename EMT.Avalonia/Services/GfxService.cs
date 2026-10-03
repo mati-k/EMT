@@ -19,16 +19,19 @@ namespace EMT.Services
     {
         private const string _missionGfxPrefix = "gfx/interface/missions";
         private const string _missionFrameGfx = "GFX_mission_icons_frame";
+        private const string _missionViewBackgroundGfx = "GFX_country_mission_view_bg";
         private static readonly HashSet<string> SpriteTypes = new(StringComparer.OrdinalIgnoreCase) { "spriteType", "frameAnimatedSpriteType" };
 
         private readonly Dictionary<string, GfxSprite> _missionGfx = [];
         private readonly List<ColorKey> _textColors = [];
         private readonly Dictionary<string, Bitmap?> _bitmapCache = [];
         private readonly Dictionary<string, IReadOnlyList<Avalonia.Media.IImage>> _framesCache = [];
+        private Bitmap? _backgroundTile;
 
         public IReadOnlyDictionary<string, GfxSprite> MissionGfx => _missionGfx;
         public IReadOnlyList<ColorKey> TextColors => _textColors;
         public string? MissionFramePath { get; private set; }
+        public string? MissionViewBackgroundPath { get; private set; }
 
         public void Load(string vanillaFolder, string modFolder)
         {
@@ -36,6 +39,8 @@ namespace EMT.Services
             _framesCache.Clear();
             _textColors.Clear();
             MissionFramePath = null;
+            MissionViewBackgroundPath = null;
+            _backgroundTile = null;
 
             // Mod first, so its definitions take precedence over vanilla ones
             foreach (string root in new[] { modFolder, vanillaFolder })
@@ -82,6 +87,9 @@ namespace EMT.Services
 
                         if (name.Equals(_missionFrameGfx) && MissionFramePath == null)
                             MissionFramePath = texturePath;
+
+                        if (name.Equals(_missionViewBackgroundGfx) && MissionViewBackgroundPath == null)
+                            MissionViewBackgroundPath = texturePath;
                     }
                 }
                 catch (Exception e)
@@ -136,6 +144,34 @@ namespace EMT.Services
         public Bitmap? GetGfxBitmap(string? gfxName)
         {
             return GetBitmap(GetSprite(gfxName)?.Path);
+        }
+
+        public Bitmap? GetMissionBackgroundTile()
+        {
+            if (_backgroundTile != null)
+                return _backgroundTile;
+
+            Bitmap? bitmap = GetBitmap(MissionViewBackgroundPath);
+            if (bitmap == null)
+                return null;
+
+            // Patterned middle of the mission window, without frame, header and the darker edges
+            int width = bitmap.PixelSize.Width, height = bitmap.PixelSize.Height;
+            var rect = new PixelRect((int)(width * 0.09), (int)(height * 0.275), (int)(width * 0.79), (int)(height * 0.56));
+
+            _backgroundTile = CopyRegion(bitmap, rect);
+            return _backgroundTile;
+        }
+
+        private static Bitmap CopyRegion(Bitmap source, PixelRect rect)
+        {
+            var copy = new WriteableBitmap(rect.Size, source.Dpi, PixelFormats.Bgra8888, AlphaFormat.Unpremul);
+            using (var buffer = copy.Lock())
+            {
+                source.CopyPixels(rect, buffer.Address, buffer.RowBytes * rect.Height, buffer.RowBytes);
+            }
+
+            return copy;
         }
 
         public IReadOnlyList<Avalonia.Media.IImage> GetFrames(string? gfxName)

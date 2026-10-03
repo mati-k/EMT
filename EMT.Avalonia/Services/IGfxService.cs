@@ -24,5 +24,10 @@ namespace EMT.Services
         /// </summary>
         public IReadOnlyList<IImage> GetFrames(string? gfxName);
         public IBrush? GetColorForKey(char key);
+
+        /// <summary>
+        /// Patch of the in-game mission window background, meant to be tiled. Null if the texture isn't found.
+        /// </summary>
+        public Bitmap? GetMissionBackgroundTile();
     }
 }

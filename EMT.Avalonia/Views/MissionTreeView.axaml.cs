@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.DependencyInjection;
@@ -48,6 +49,8 @@ namespace EMT.Views
             if (_viewModel == null)
                 return;
 
+            UpdateBackground();
+
             MissionFileModel missionFile = _viewModel.MissionFile;
             Dictionary<string, (double X, double Y)> map = new Dictionary<string, (double X, double Y)>();
             double maxX = 0, maxY = 0;
@@ -79,6 +82,28 @@ namespace EMT.Views
             // Canvas doesn't measure its children, give the scroll viewer the real extent
             MainCanvas.Width = maxX;
             MainCanvas.Height = maxY;
+        }
+
+        /// <summary>
+        /// Game's mission window pattern, mirrored when tiled so seams don't show. Plain colour if the texture is missing.
+        /// </summary>
+        private void UpdateBackground()
+        {
+            if (Scroller.Background is ImageBrush)
+                return;
+
+            var tile = Ioc.Default.GetService<IGfxService>()?.GetMissionBackgroundTile();
+            if (tile == null)
+                return;
+
+            Scroller.Background = new ImageBrush(tile)
+            {
+                TileMode = TileMode.FlipXY,
+                Stretch = Stretch.None,
+                AlignmentX = AlignmentX.Left,
+                AlignmentY = AlignmentY.Top,
+                DestinationRect = new RelativeRect(0, 0, tile.Size.Width, tile.Size.Height, RelativeUnit.Absolute),
+            };
         }
 
         private void DrawArrows(MissionFileModel missionFile, Dictionary<string, (double X, double Y)> map)

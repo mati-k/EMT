@@ -4,6 +4,6 @@
              x:DataType="vm:MissionTreeViewModel"
              x:Class="EMT.Views.MissionTreeView">
   <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#FF1E2A3A">
-    <Canvas x:Name="MainCanvas" Margin="8" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+    <Canvas x:Name="MainCanvas" Margin="8" HorizontalAlignment="Center" VerticalAlignment="Top"/>
   </ScrollViewer>
 </UserControl>

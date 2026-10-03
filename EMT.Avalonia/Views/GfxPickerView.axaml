@@ -1,7 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:EMT.ViewModels"
-             xmlns:converters="using:EMT.Converters"
+             xmlns:models="using:EMT.Models"
+             xmlns:views="using:EMT.Views"
              x:DataType="vm:GfxPickerViewModel"
              Width="860" Height="620"
              x:Class="EMT.Views.GfxPickerView">
@@ -16,9 +17,9 @@
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.ItemTemplate>
-        <DataTemplate DataType="vm:GfxEntry">
+        <DataTemplate DataType="models:GfxSprite">
           <StackPanel Width="90" ToolTip.Tip="{Binding Name}">
-            <Image Source="{Binding Path, Converter={x:Static converters:DDSConverter.FromPath}}" Width="59" Height="63"/>
+            <views:GfxImage GfxName="{Binding Name}" Width="59" Height="63"/>
             <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" FontSize="11" MaxHeight="45"/>
           </StackPanel>
         </DataTemplate>

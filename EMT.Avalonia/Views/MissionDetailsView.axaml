@@ -3,7 +3,6 @@
              xmlns:vm="using:EMT.ViewModels"
              xmlns:models="using:EMT.Models"
              xmlns:views="using:EMT.Views"
-             xmlns:converters="using:EMT.Converters"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:assist="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
              x:DataType="vm:MissionDetailsViewModel"
@@ -20,7 +19,7 @@
       </StackPanel>
 
       <Grid ColumnDefinitions="Auto,*,Auto">
-        <Image Grid.Column="0" Source="{Binding Mission.Icon, Converter={x:Static converters:DDSConverter.FromGfxName}}"
+        <views:GfxImage Grid.Column="0" GfxName="{Binding Mission.Icon}"
                Width="59" Height="63" Margin="0,0,8,0"/>
         <TextBox Grid.Column="1" Text="{Binding Mission.Icon}" assist:TextFieldAssist.Label="Mission icon" VerticalAlignment="Center"/>
         <Button Grid.Column="2" Content="GFX Picker" Command="{Binding PickGfxCommand}" Margin="8,0,0,0" VerticalAlignment="Center"/>

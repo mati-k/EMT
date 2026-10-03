@@ -19,18 +19,21 @@ namespace EMT.Services
     {
         private const string _missionGfxPrefix = "gfx/interface/missions";
         private const string _missionFrameGfx = "GFX_mission_icons_frame";
+        private static readonly HashSet<string> SpriteTypes = new(StringComparer.OrdinalIgnoreCase) { "spriteType", "frameAnimatedSpriteType" };
 
-        private readonly Dictionary<string, string> _missionGfx = [];
+        private readonly Dictionary<string, GfxSprite> _missionGfx = [];
         private readonly List<ColorKey> _textColors = [];
         private readonly Dictionary<string, Bitmap?> _bitmapCache = [];
+        private readonly Dictionary<string, IReadOnlyList<Avalonia.Media.IImage>> _framesCache = [];
 
-        public IReadOnlyDictionary<string, string> MissionGfx => _missionGfx;
+        public IReadOnlyDictionary<string, GfxSprite> MissionGfx => _missionGfx;
         public IReadOnlyList<ColorKey> TextColors => _textColors;
         public string? MissionFramePath { get; private set; }
 
         public void Load(string vanillaFolder, string modFolder)
         {
             _missionGfx.Clear();
+            _framesCache.Clear();
             _textColors.Clear();
             MissionFramePath = null;
 
@@ -64,7 +67,7 @@ namespace EMT.Services
                         LoadTextColors(gfxFileData);
                     }
 
-                    foreach (ScriptNode sprite in Descendants(gfxFileData).Where(group => group.Name.Equals("spriteType", StringComparison.OrdinalIgnoreCase)))
+                    foreach (ScriptNode sprite in Descendants(gfxFileData).Where(group => SpriteTypes.Contains(group.Name)))
                     {
                         string? name = Property(sprite, "name");
                         string? textureFile = Property(sprite, "texturefile");
@@ -75,7 +78,7 @@ namespace EMT.Services
                         string texturePath = PathHelper.ResolveCaseInsensitive(root, texture) ?? Path.Combine(root, texture);
 
                         if (texture.StartsWith(_missionGfxPrefix, StringComparison.OrdinalIgnoreCase))
-                            _missionGfx.Add(name, texturePath);
+                            _missionGfx.Add(name, ReadSprite(sprite, name, texturePath));
 
                         if (name.Equals(_missionFrameGfx) && MissionFramePath == null)
                             MissionFramePath = texturePath;
@@ -113,12 +116,49 @@ namespace EMT.Services
         private static string? Property(ScriptNode group, string name) =>
             group.Children!.FirstOrDefault(node => !node.IsGroup && !node.IsBare && node.Name.Equals(name, StringComparison.OrdinalIgnoreCase))?.Value;
 
-        public Bitmap? GetGfxBitmap(string? gfxName)
+        private static GfxSprite ReadSprite(ScriptNode sprite, string name, string texturePath)
         {
-            if (string.IsNullOrWhiteSpace(gfxName) || !_missionGfx.TryGetValue(gfxName, out string? path))
+            int frames = int.TryParse(Property(sprite, "noOfFrames"), out int count) ? count : 1;
+            double fps = double.TryParse(Property(sprite, "animation_rate_fps"), System.Globalization.CultureInfo.InvariantCulture, out double rate) ? rate : 0;
+            double pause = double.TryParse(Property(sprite, "pause_on_loop"), System.Globalization.CultureInfo.InvariantCulture, out double seconds) ? seconds : 0;
+
+            return new GfxSprite(name, texturePath, Math.Max(frames, 1), fps, pause);
+        }
+
+        public GfxSprite? GetSprite(string? gfxName)
+        {
+            if (string.IsNullOrWhiteSpace(gfxName))
                 return null;
 
-            return GetBitmap(path);
+            return _missionGfx.GetValueOrDefault(gfxName);
+        }
+
+        public Bitmap? GetGfxBitmap(string? gfxName)
+        {
+            return GetBitmap(GetSprite(gfxName)?.Path);
+        }
+
+        public IReadOnlyList<Avalonia.Media.IImage> GetFrames(string? gfxName)
+        {
+            GfxSprite? sprite = GetSprite(gfxName);
+            Bitmap? bitmap = GetBitmap(sprite?.Path);
+            if (sprite == null || bitmap == null)
+                return [];
+
+            if (sprite.Frames <= 1)
+                return [bitmap];
+
+            if (_framesCache.TryGetValue(sprite.Name, out var cached))
+                return cached;
+
+            // Frames are laid out left to right in one texture
+            int frameWidth = bitmap.PixelSize.Width / sprite.Frames;
+            List<Avalonia.Media.IImage> frames = [];
+            for (int i = 0; i < sprite.Frames && frameWidth > 0; i++)
+                frames.Add(new CroppedBitmap(bitmap, new PixelRect(i * frameWidth, 0, frameWidth, bitmap.PixelSize.Height)));
+
+            _framesCache[sprite.Name] = frames;
+            return frames;
         }
 
         public Bitmap? GetBitmap(string? filePath)

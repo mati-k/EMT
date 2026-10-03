@@ -7,7 +7,7 @@
              Width="104" Height="122" Cursor="Hand"
              x:Class="EMT.Views.MissionControl">
   <Panel>
-    <Image Source="{Binding Icon, Converter={x:Static converters:DDSConverter.FromGfxName}}"
+    <views:GfxImage GfxName="{Binding Icon}"
            HorizontalAlignment="Left" VerticalAlignment="Top" Margin="22,20,0,0" Width="59" Height="63"/>
     <Image Source="{Binding Converter={x:Static converters:DDSConverter.MissionFrame}}"
            HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="None"/>

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using DialogHostAvalonia;
+using EMT.Models;
 using EMT.Services;
 using System;
 using System.Collections.Generic;
@@ -9,27 +10,25 @@ using System.Linq;
 
 namespace EMT.ViewModels
 {
-    public record GfxEntry(string Name, string Path);
-
     public partial class GfxPickerViewModel : ViewModelBase
     {
-        private readonly List<GfxEntry> _allIcons;
+        private readonly List<GfxSprite> _allIcons;
 
         [ObservableProperty]
         private string _filterText = "";
 
         [ObservableProperty]
-        private List<GfxEntry> _filteredIcons;
+        private List<GfxSprite> _filteredIcons;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-        private GfxEntry? _selectedIcon;
+        private GfxSprite? _selectedIcon;
 
         public GfxPickerViewModel(string? currentIcon)
         {
             var gfxService = Ioc.Default.GetService<IGfxService>();
             _allIcons = gfxService?.MissionGfx
-                .Select(gfx => new GfxEntry(gfx.Key, gfx.Value))
+                .Select(gfx => gfx.Value)
                 .OrderBy(gfx => gfx.Name, StringComparer.OrdinalIgnoreCase)
                 .ToList() ?? [];
 

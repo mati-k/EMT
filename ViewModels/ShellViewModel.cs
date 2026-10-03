@@ -1,7 +1,7 @@
 ﻿using Caliburn.Micro;
 using EMT.Converters;
 using EMT.Models;
-using EMT.Views;
+using EMT.SharedData;
 using Pdoxcl2Sharp;
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using EMT.SharedData;
-using System.Windows.Media;
 
 namespace EMT.ViewModels
 {
@@ -34,7 +31,7 @@ namespace EMT.ViewModels
         public MissionFileModel MissionFile
         {
             get { return _missionFile; }
-            set 
+            set
             {
                 _missionFile = value;
                 NotifyOfPropertyChange(() => MissionFile);
@@ -69,8 +66,8 @@ namespace EMT.ViewModels
                 {
                     MissionFile.Write(writer);
                 }
-            } 
-            
+            }
+
             catch (Exception e)
             {
                 MessageDialogViewModel dialog = IoC.Get<MessageDialogViewModel>();
@@ -79,7 +76,7 @@ namespace EMT.ViewModels
                 _windowManager.ShowDialogAsync(dialog);
                 log.Error("Mission saving error", e);
             }
-             File.Delete(backupName);
+            File.Delete(backupName);
 
             backupName = _filesModel.LocalisationFile;
             while (File.Exists(backupName))
@@ -107,7 +104,7 @@ namespace EMT.ViewModels
 
                 log.Error("Localisation saving error", e);
             }
-             File.Delete(backupName);
+            File.Delete(backupName);
         }
 
         public Task HandleAsync(FilesModel message, CancellationToken cancellationToken)
@@ -161,7 +158,7 @@ namespace EMT.ViewModels
                             localisation.Add(tuple.Item1, tuple.Item2);
                         else
                             Console.WriteLine("Duplicate localisation: {0} = {1}", tuple.Item1, tuple.Item2); // Save to file?
-                });
+                    });
 
                     List<string> used = new List<string>();
                     foreach (MissionBranchModel branch in missionFileModel.Branches)
@@ -254,7 +251,7 @@ namespace EMT.ViewModels
                     log.Error(String.Format("Loading gfx {0}", gfxFile), e);
                 }
             }
-            
+
             GfxStorage.Instance.GfxFiles = gfxFiles;
         }
 

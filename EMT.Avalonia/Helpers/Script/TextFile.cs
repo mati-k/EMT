@@ -26,33 +26,37 @@ namespace EMT.Helpers.Script
         /// Reads a script file. Game expects Windows-1252, but files with UTF-8 BOM
         /// or valid UTF-8 characters are kept as UTF-8.
         /// </summary>
-        public static TextFile ReadScript(string path) => Read(File.ReadAllBytes(path), utf8ByDefault: false);
+        public static TextFile ReadScript(string path) => Read(File.ReadAllBytes(path), localisation: false);
 
         /// <summary>
-        /// Reads a localisation file, which the game expects as UTF-8 with BOM.
+        /// Reads a localisation file. It's always written back as UTF-8 with BOM,
+        /// without the BOM the game ignores the file.
         /// </summary>
-        public static TextFile ReadLocalisation(string path) => Read(File.ReadAllBytes(path), utf8ByDefault: true);
+        public static TextFile ReadLocalisation(string path) => Read(File.ReadAllBytes(path), localisation: true);
 
-        public static TextFile Read(byte[] bytes, bool utf8ByDefault)
+        public static TextFile Read(byte[] bytes, bool localisation)
         {
             Encoding encoding;
             string text;
+            bool hasBom = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
 
-            if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            if (localisation)
+            {
+                encoding = new UTF8Encoding(true);
+                int start = hasBom ? 3 : 0;
+
+                // Broken UTF-8 is decoded leniently
+                text = TryDecodeUtf8(bytes[start..], out string utf8Text) ? utf8Text : encoding.GetString(bytes, start, bytes.Length - start);
+            }
+            else if (hasBom)
             {
                 encoding = new UTF8Encoding(true);
                 text = encoding.GetString(bytes, 3, bytes.Length - 3);
             }
-            else if (TryDecodeUtf8(bytes, out string utf8Text) && (utf8ByDefault || ContainsNonAscii(utf8Text)))
+            else if (TryDecodeUtf8(bytes, out string utf8Text) && ContainsNonAscii(utf8Text))
             {
                 encoding = new UTF8Encoding(false);
                 text = utf8Text;
-            }
-            else if (utf8ByDefault)
-            {
-                // Broken UTF-8, decode leniently
-                encoding = new UTF8Encoding(true);
-                text = encoding.GetString(bytes);
             }
             else
             {

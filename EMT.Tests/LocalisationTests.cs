@@ -15,7 +15,7 @@ namespace EMT.Tests
             " unrelated_key: \"Unrelated\"\r\n";
 
         private static Localisation Load(string text) =>
-            new Localisation(TextFile.Read(new UTF8Encoding(true).GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray(), utf8ByDefault: true));
+            new Localisation(TextFile.Read(new UTF8Encoding(true).GetPreamble().Concat(Encoding.UTF8.GetBytes(text)).ToArray(), localisation: true));
 
         private static string Save(Localisation localisation)
         {
@@ -64,6 +64,18 @@ namespace EMT.Tests
             var localisation = Load(Sample);
             localisation.Rename("mission_one_desc", "mission_renamed_desc");
             Assert.Equal(Sample.Replace("mission_one_desc:1", "mission_renamed_desc:1"), Save(localisation));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("l_english:\r\n mission_title:0 \"Title\"\r\n")]
+        public void FileWithoutBom_SavedWithBom(string text)
+        {
+            // E.g. empty file made by "New file", the game ignores localisation without BOM
+            var localisation = new Localisation(TextFile.Read(Encoding.UTF8.GetBytes(text), localisation: true));
+            localisation.Set("other_title", "Other");
+
+            Assert.Contains(" other_title:0 \"Other\"", Save(localisation));
         }
 
         [Fact]

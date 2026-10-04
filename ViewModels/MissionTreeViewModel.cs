@@ -1,155 +1,148 @@
-﻿using Caliburn.Micro;
+using Avalonia.Threading;
 using EMT.Models;
-using EMT.Views;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Linq;
 
 namespace EMT.ViewModels
 {
-    public class MissionTreeViewModel : Screen, IHandle<MissionFileModel>
+    /// <summary>
+    /// Watches the mission file for anything affecting the tree preview and recalculates real mission positions.
+    /// </summary>
+    public class MissionTreeViewModel : ViewModelBase
     {
-        private IEventAggregator _eventAggregator;
-        private MissionFileModel _missionFile;
-        public MissionFileModel MissionFile
+        private readonly List<INotifyPropertyChanged> _watchedObjects = [];
+        private readonly List<INotifyCollectionChanged> _watchedCollections = [];
+        private readonly Action<MissionModel> _onMissionSelected;
+        private bool _updatePending;
+
+        public MissionFileModel MissionFile { get; }
+
+        /// <summary>
+        /// Raised (at most once per UI frame) after positions were recalculated and the preview should be redrawn.
+        /// </summary>
+        public event Action? TreeChanged;
+
+        public MissionTreeViewModel(MissionFileModel missionFile, Action<MissionModel> onMissionSelected)
         {
-            get { return _missionFile; }
-            set
-            {
-                _missionFile = value;
-                NotifyOfPropertyChange(() => MissionFile);
-            }
-        }
+            MissionFile = missionFile;
+            _onMissionSelected = onMissionSelected;
 
-        public MissionTreeViewModel(IEventAggregator eventAggregator)
-        {
-            _eventAggregator = eventAggregator;
-            _eventAggregator.SubscribeOnPublishedThread(this);
-        }
-
-        public Task HandleAsync(MissionFileModel message, CancellationToken cancellationToken)
-        {
-            MissionFile = message;
-
-            MissionFile.Branches.CollectionChanged += Branches_CollectionChanged;
-            Branches_CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, MissionFile.Branches), true);
-
-            MissionTreeChanged();
-            return Task.CompletedTask;
-        }
-
-        private void Branches_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            Branches_CollectionChanged(sender, e, false);
-        }
-
-        private void Branches_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e, bool updateHandled)
-        {
-            if (e.NewItems != null)
-            {
-                foreach (MissionBranchModel branch in e.NewItems)
-                {
-                    branch.Missions.CollectionChanged += Missions_CollectionChanged;
-                    branch.PropertyChanged += BranchPropertyChanged;
-                    Missions_CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, branch.Missions), true);
-                }
-            }
-
-            if (e.OldItems != null)
-            {
-                foreach (MissionBranchModel branch in e.OldItems)
-                {
-                    branch.Missions.CollectionChanged -= Missions_CollectionChanged;
-                    branch.PropertyChanged -= BranchPropertyChanged;
-                }
-            }
-
-            if (!updateHandled)
-                MissionTreeChanged();
-        }
-
-        private void Missions_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            Missions_CollectionChanged(sender, e, false);
-        }
-
-        private void Missions_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e, bool updateHandled)
-        {
-            if (e.NewItems != null)
-            {
-                foreach (MissionModel mission in e.NewItems)
-                {
-                    mission.PropertyChanged += MissionPropertyChanged;
-                    mission.RequiredMissions.CollectionChanged += RequiredMissions_CollectionChanged;
-
-                    foreach (MissionModel required in mission.RequiredMissions)
-                    {
-                        required.PropertyChanged += MissionPropertyChanged;
-                    }
-                }
-            }
-
-            if (e.OldItems != null)
-            {
-                foreach (MissionModel mission in e.OldItems)
-                {
-                    mission.PropertyChanged -= MissionPropertyChanged;
-
-                    mission.RequiredMissions.CollectionChanged -= RequiredMissions_CollectionChanged;
-                    foreach (MissionModel required in mission.RequiredMissions)
-                    {
-                        required.PropertyChanged -= MissionPropertyChanged;
-                    }
-                }
-            }
-
-            if (!updateHandled)
-                MissionTreeChanged();
-        }
-
-        private void RequiredMissions_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.NewItems != null)
-            {
-                foreach (MissionModel mission in e.NewItems)
-                {
-                    mission.PropertyChanged += MissionPropertyChanged;
-                }
-            }
-
-            if (e.OldItems != null)
-            {
-                foreach (MissionModel mission in e.OldItems)
-                {
-                    mission.PropertyChanged -= MissionPropertyChanged;
-                }
-            }
-        }
-
-        private void BranchPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Slot" || e.PropertyName == "IsActive")
-                MissionTreeChanged();
-        }
-
-        private void MissionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Position" || e.PropertyName == "Name")
-                MissionTreeChanged();
-        }
-
-        private void MissionTreeChanged()
-        {
-            (GetView() as MissionTreeView).UpdateMissionTree();
+            Resubscribe();
+            UpdateMissionPositions();
         }
 
         public void SelectMission(MissionModel mission)
         {
-            _eventAggregator.PublishOnUIThreadAsync(mission);
+            _onMissionSelected(mission);
+        }
+
+        private void Resubscribe()
+        {
+            foreach (var watched in _watchedObjects)
+                watched.PropertyChanged -= Watched_PropertyChanged;
+            foreach (var collection in _watchedCollections)
+                collection.CollectionChanged -= Watched_CollectionChanged;
+
+            _watchedObjects.Clear();
+            _watchedCollections.Clear();
+
+            WatchCollection(MissionFile.Branches);
+            foreach (MissionBranchModel branch in MissionFile.Branches)
+            {
+                Watch(branch);
+                WatchCollection(branch.Missions);
+
+                foreach (MissionModel mission in branch.Missions)
+                {
+                    Watch(mission);
+                    WatchCollection(mission.RequiredMissions);
+
+                    foreach (MissionModel required in mission.RequiredMissions)
+                        Watch(required);
+                }
+            }
+        }
+
+        private void Watch(INotifyPropertyChanged watched)
+        {
+            watched.PropertyChanged += Watched_PropertyChanged;
+            _watchedObjects.Add(watched);
+        }
+
+        private void WatchCollection(INotifyCollectionChanged collection)
+        {
+            collection.CollectionChanged += Watched_CollectionChanged;
+            _watchedCollections.Add(collection);
+        }
+
+        private void Watched_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            Resubscribe();
+            ScheduleUpdate();
+        }
+
+        private void Watched_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            bool relevant = sender switch
+            {
+                MissionBranchModel => e.PropertyName is nameof(MissionBranchModel.Slot) or nameof(MissionBranchModel.IsActive),
+                MissionModel => e.PropertyName is nameof(MissionModel.Position) or nameof(MissionModel.Name) or nameof(MissionModel.Icon),
+                _ => false
+            };
+
+            if (relevant)
+                ScheduleUpdate();
+        }
+
+        private void ScheduleUpdate()
+        {
+            if (_updatePending)
+                return;
+
+            _updatePending = true;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _updatePending = false;
+                UpdateMissionPositions();
+                TreeChanged?.Invoke();
+            });
+        }
+
+        private void UpdateMissionPositions()
+        {
+            Dictionary<string, MissionModel> missions = new Dictionary<string, MissionModel>();
+            foreach (MissionModel mission in MissionFile.Branches.Where(b => b.IsActive).SelectMany(branch => branch.Missions))
+            {
+                missions.TryAdd(mission.Name, mission);
+            }
+
+            HashSet<string> calculated = new HashSet<string>();
+            foreach (MissionModel mission in missions.Values)
+            {
+                if (!calculated.Contains(mission.Name))
+                    RecalculateRealPosition(mission, missions, calculated);
+            }
+        }
+
+        private static void RecalculateRealPosition(MissionModel mission, Dictionary<string, MissionModel> missions, HashSet<string> calculated)
+        {
+            int max = mission.Position;
+            foreach (MissionModel required in mission.RequiredMissions)
+            {
+                if (missions.ContainsKey(required.Name) && !MissionModel.IsRequirementLoop(required.Name, missions))
+                {
+                    if (!calculated.Contains(required.Name))
+                        RecalculateRealPosition(missions[required.Name], missions, calculated);
+
+                    max = Math.Max(max, missions[required.Name].RealPosition + 1);
+                }
+            }
+
+            mission.RealPosition = max;
+            calculated.Add(mission.Name);
         }
     }
 }

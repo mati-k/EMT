@@ -2,6 +2,10 @@
 
 _Review date: 2026-10-03. Last commit at time of review: 2025-02-25 (`be78df6`)._
 
+> **Note:** this reviews the original WPF version, which has since been replaced by the Avalonia rewrite.
+> The issues listed here were addressed in the rewrite: saving patches the original text, localisation is
+> edited line by line, and the Avalonia + .NET 10 plan below is what was implemented.
+
 ## What it is
 
 EU4 Mission Tool: a WPF desktop editor for Europa Universalis IV mission trees.

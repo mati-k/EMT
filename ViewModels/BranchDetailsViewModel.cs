@@ -1,69 +1,28 @@
-﻿using Caliburn.Micro;
-using EMT.Handlers;
+using EMT.Helpers;
 using EMT.Models;
-using GongSolutions.Wpf.DragDrop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace EMT.ViewModels
 {
-    public class BranchDetailsViewModel : Screen, IHandle<MissionFileModel>, IHandle<MissionBranchModel>
+    public class BranchDetailsViewModel : ViewModelBase
     {
-        private IEventAggregator _eventAggregator;
-        private MissionBranchModel _branch;
+        public MissionBranchModel Branch { get; }
 
-        public MissionBranchModel Branch
-        {
-            get { return _branch; }
-            set
-            {
-                _branch = value;
-                NotifyOfPropertyChange(() => Branch);
-            }
-        }
-        public MissionFileModel MissionFile { get; set; }
-        public IDropTarget DropHandler { get; } = new DropTargetHandler();
+        /// <summary>
+        /// Why the branch key can't be saved, null if it's fine.
+        /// </summary>
+        public string? NameError => ScriptNames.BranchNameProblem(Branch);
 
-        public void AddValue(GroupNodeModel node)
+        public BranchDetailsViewModel(MissionBranchModel branch)
         {
-            node.Nodes.Add(new ValueNodeModel() { Parent = node }); ;
+            Branch = branch;
+            Branch.PropertyChanged += Branch_PropertyChanged;
         }
 
-        public void AddGroup(GroupNodeModel node)
+        private void Branch_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            node.Nodes.Add(new GroupNodeModel() { Parent = node });
-        }
-
-        public void RemoveValue(ValueNodeModel node)
-        {
-            node.Parent.Nodes.Remove(node);
-        }
-
-        public void RemoveGroup(GroupNodeModel node)
-        {
-            node.Parent.Nodes.Remove(node);
-        }
-
-        public BranchDetailsViewModel(IEventAggregator eventAggregator)
-        {
-            _eventAggregator = eventAggregator;
-            _eventAggregator.SubscribeOnPublishedThread(this);
-        }
-
-        public Task HandleAsync(MissionFileModel message, CancellationToken cancellationToken)
-        {
-            MissionFile = message;
-            return Task.CompletedTask;
-        }
-
-        public Task HandleAsync(MissionBranchModel message, CancellationToken cancellationToken)
-        {
-            Branch = message;
-            return Task.CompletedTask;
+            if (e.PropertyName == nameof(MissionBranchModel.Name))
+                OnPropertyChanged(nameof(NameError));
         }
     }
 }

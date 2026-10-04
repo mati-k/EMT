@@ -1,85 +1,91 @@
-﻿using Caliburn.Micro;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DialogHostAvalonia;
+using EMT.Helpers;
 using EMT.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using EMT.SharedData;
-using GongSolutions.Wpf.DragDrop;
-using EMT.Handlers;
-using AutoCompleteTextBox.Editors;
 
 namespace EMT.ViewModels
 {
-    public class MissionDetailsViewModel : Screen, IHandle<MissionFileModel>, IHandle<MissionModel>
+    public partial class MissionDetailsViewModel : ViewModelBase
     {
-        private IEventAggregator _eventAggregator;
-        private IWindowManager _windowManager;
+        public MissionModel Mission { get; }
 
-        private MissionModel _mission;
+        /// <summary>
+        /// Other missions in the file, suggested when adding requirements.
+        /// </summary>
+        public List<string> OtherMissionNames { get; }
 
-        public MissionModel Mission 
+        [ObservableProperty]
+        private string _requiredMissionInput = "";
+
+        /// <summary>
+        /// Why the last typed required mission wasn't added, null if it was.
+        /// </summary>
+        [ObservableProperty]
+        private string? _requiredMissionError;
+
+        /// <summary>
+        /// Why the mission key can't be saved, null if it's fine.
+        /// </summary>
+        public string? NameError => ScriptNames.MissionNameProblem(Mission);
+
+        public MissionDetailsViewModel(MissionModel mission)
         {
-            get { return _mission; }
-            set
+            Mission = mission;
+            Mission.PropertyChanged += Mission_PropertyChanged;
+            OtherMissionNames = mission.Branch?.MissionFile.Branches
+                .SelectMany(branch => branch.Missions)
+                .Where(other => other != mission)
+                .Select(other => other.Name)
+                .Distinct()
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? [];
+        }
+
+        private void Mission_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MissionModel.Name))
+                OnPropertyChanged(nameof(NameError));
+        }
+
+        [RelayCommand]
+        public async Task PickGfx()
+        {
+            var picker = new GfxPickerViewModel(Mission.Icon);
+            var result = await DialogHost.Show(picker, MainWindowViewModel.DialogHostId);
+
+            if (result is string icon && !string.IsNullOrWhiteSpace(icon))
+                Mission.Icon = icon;
+        }
+
+        [RelayCommand]
+        public void AddRequiredMission(string? name)
+        {
+            name = (name ?? RequiredMissionInput).Trim();
+            RequiredMissionInput = "";
+            RequiredMissionError = null;
+
+            if (name.Length == 0 || name == Mission.Name || Mission.RequiredMissions.Any(required => required.Name == name))
+                return;
+
+            if (ScriptNames.KeyProblem(name) is string problem)
             {
-                _mission = value;
-                NotifyOfPropertyChange(() => Mission);
+                RequiredMissionError = $"'{name}' not added: {problem}";
+                return;
             }
+
+            Mission.RequiredMissions.Add(new MissionModel() { Name = name });
         }
 
-        public MissionFileModel MissionFile { get; set; }
-
-        public MissionDetailsViewModel(IEventAggregator eventAggregator, IWindowManager windowManager)
+        [RelayCommand]
+        public void RemoveRequiredMission(MissionModel required)
         {
-            _eventAggregator = eventAggregator;
-            _eventAggregator.SubscribeOnPublishedThread(this);
-
-            _windowManager = windowManager;
-        }
-
-        public void AddValue(GroupNodeModel node)
-        {
-            node.Nodes.Add(new ValueNodeModel() { Parent = node }); ;
-        }
-
-        public void AddGroup(GroupNodeModel node)
-        {
-            node.Nodes.Add(new GroupNodeModel() { Parent = node });
-        }
-
-        public void RemoveValue(ValueNodeModel node)
-        {
-            node.Parent.Nodes.Remove(node);
-        }
-
-        public void RemoveGroup(GroupNodeModel node)
-        {
-            node.Parent.Nodes.Remove(node);
-        }
-
-        public Task HandleAsync(MissionFileModel message, CancellationToken cancellationToken)
-        {
-            MissionFile = message;
-            return Task.CompletedTask;
-        }
-
-        public Task HandleAsync(MissionModel message, CancellationToken cancellationToken)
-        {
-            Mission = message;
-            return Task.CompletedTask;
-        }
-
-        public void PickGfx()
-        {
-            GfxDialogViewModel gfxDialog = IoC.Get<GfxDialogViewModel>();
-            gfxDialog.GfxFiles = GfxStorage.Instance.GfxFiles;
-
-            var result = _windowManager.ShowDialogAsync(gfxDialog);
-            if (result.Result.GetValueOrDefault())
-                Mission.Icon = gfxDialog.SelectedIcon.Key;
+            Mission.RequiredMissions.Remove(required);
         }
     }
 }

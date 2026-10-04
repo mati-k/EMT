@@ -1,110 +1,42 @@
-﻿using Caliburn.Micro;
-using Pdoxcl2Sharp;
+using CommunityToolkit.Mvvm.ComponentModel;
+using EMT.Helpers.Script;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using EMT.SharedData;
-using EMT.Exceptions;
 
 namespace EMT.Models
 {
-    public class MissionModel : PropertyChangedBase, IParadoxRead, IParadoxWrite
+    /// <summary>
+    /// Mission with the fields this tool edits. Everything else (trigger, effect...) stays as text in the file.
+    /// </summary>
+    public partial class MissionModel : ObservableObject
     {
-        private string _name;
-        private int _position = 1;
-        private int _realPosition;
-        private string _title = "";
-        private string _description = "";
-        private string _icon;
-        private NodeModel _provincesToHighlight = new GroupNodeModel() { Name = "provinces_to_highlight" };
-        private NodeModel _trigger = new GroupNodeModel() { Name = "trigger" };
-        private NodeModel _effect = new GroupNodeModel() { Name = "effect" };
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(TitleOrName))]
+        private string _name = "";
 
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                _name = value;
-                NotifyOfPropertyChange(() => Name);
-                NotifyOfPropertyChange(() => TitleOrName);
-            }
-        }
-        public int Position
-        {
-            get { return _position; }
-            set
-            {
-                _position = value;
-                NotifyOfPropertyChange(() => Position);
-            }
-        }
-        public string Icon
-        {
-            get { return _icon; }
-            set
-            {
-                _icon = value;
-                NotifyOfPropertyChange(() => Icon);
-                NotifyOfPropertyChange(() => IconPath);
-            }
-        }
-        public BindableCollection<MissionModel> RequiredMissions { get; set; } = new BindableCollection<MissionModel>();
-        public NodeModel ProvincesToHighlight
-        {
-            get { return _provincesToHighlight; }
-            set
-            {
-                _provincesToHighlight = value;
-                NotifyOfPropertyChange(() => ProvincesToHighlight);
-            }
-        }
-        public NodeModel Trigger
-        {
-            get { return _trigger; }
-            set
-            {
-                _trigger = value;
-                NotifyOfPropertyChange(() => Trigger);
-            }
-        }
-        public NodeModel Effect
-        {
-            get { return _effect; }
-            set
-            {
-                _effect = value;
-                NotifyOfPropertyChange(() => Effect);
-            }
-        }
-        public string Title
-        {
-            get { return _title; }
-            set
-            {
-                _title = value;
-                NotifyOfPropertyChange(() => Title);
-                NotifyOfPropertyChange(() => TitleOrName);
-            }
-        }
-        public string Description
-        {
-            get { return _description; }
-            set
-            {
-                _description = value;
-                NotifyOfPropertyChange(() => Description);
-            }
-        }
-        public string IconPath
-        {
-            get
-            {
-                if (!String.IsNullOrWhiteSpace(Icon) && GfxStorage.Instance.GfxFiles.ContainsKey(Icon))
-                    return GfxStorage.Instance.GfxFiles[Icon];
-                return "";
-            }
-        }
+        [ObservableProperty]
+        private int _position = 1;
+
+        [ObservableProperty]
+        private int _realPosition;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(TitleOrName))]
+        private string _title = "";
+
+        [ObservableProperty]
+        private string _description = "";
+
+        [ObservableProperty]
+        private string _icon = "";
+
+        /// <summary>
+        /// Required missions are kept as name-only stubs, resolved by name when needed.
+        /// </summary>
+        public ObservableCollection<MissionModel> RequiredMissions { get; } = new ObservableCollection<MissionModel>();
+
         public string TitleOrName
         {
             get
@@ -114,127 +46,97 @@ namespace EMT.Models
                 return Title;
             }
         }
-        public int RealPosition
-        {
-            get { return _realPosition; }
-            set
-            {
-                _realPosition = value;
-                NotifyOfPropertyChange(() => RealPosition);
-            }
-        }
 
-        public MissionBranchModel Branch { get; set; }
+        /// <summary>
+        /// Kept in sync by <see cref="MissionBranchModel.Missions"/>.
+        /// </summary>
+        public MissionBranchModel? Branch { get; set; }
 
-        public MissionModel (MissionBranchModel branch)
+        /// <summary>
+        /// Where the mission is in the loaded file text, null for missions added in the tool.
+        /// </summary>
+        public ScriptNode? Source { get; private set; }
+
+        /// <summary>
+        /// Values as they are in the file, so only changed ones get written.
+        /// </summary>
+        public MissionSnapshot? Saved { get; private set; }
+
+        public MissionModel(MissionBranchModel branch)
         {
             this.Branch = branch;
         }
 
         public MissionModel()
         {
-
         }
 
-        public void TokenCallback(ParadoxParser parser, string token)
+        public List<string> RequiredMissionNames() =>
+            RequiredMissions.Select(mission => mission.Name.Trim()).Where(name => name.Length > 0).ToList();
+
+        public static MissionModel FromNode(ScriptNode node, MissionBranchModel branch)
         {
-            try
+            var mission = new MissionModel(branch) { Name = node.Name };
+
+            if (node.Child("position") is { IsGroup: false } position)
             {
-                switch (token)
-                {
-                    case "position": Position = parser.ReadInt32(); break;
-                    case "icon": Icon = parser.ReadString(); break;
-                    case "required_missions": RequiredMissions = new BindableCollection<MissionModel>(parser.ReadStringList().Select(name => new MissionModel() { Name = name })); break;
-                    case "provinces_to_highlight": ProvincesToHighlight = parser.Parse(new GroupNodeModel() { Name = "provinces_to_highlight" }); break;
-                    case "trigger": Trigger = parser.Parse(new GroupNodeModel() { Name = "trigger" }); break;
-                    case "effect": Effect = parser.Parse(new GroupNodeModel() { Name = "effect" }); break;
-                }
+                if (!int.TryParse(position.Value, out int value))
+                    throw new ScriptParseException($"Position of mission '{node.Name}' should be a number, not '{position.Value}'", position.ValueStart);
+                mission.Position = value;
             }
-            catch (Exception e)
+
+            if (node.Child("icon") is { IsGroup: false } icon)
+                mission.Icon = icon.Value ?? "";
+
+            if (node.Child("required_missions") is { IsGroup: true } required)
             {
-                throw new Exception($"Mission exception, mission: {Name}  , token: {token} \n{e}");
+                foreach (ScriptNode entry in required.Children!)
+                    mission.RequiredMissions.Add(new MissionModel() { Name = entry.Name });
             }
+
+            mission.MarkSaved(node);
+            return mission;
         }
 
-        public void Write(ParadoxStreamWriter writer)
+        /// <summary>
+        /// Called after loading or saving, with the mission's place in the current file text.
+        /// </summary>
+        public void MarkSaved(ScriptNode node)
         {
-            if (String.IsNullOrWhiteSpace(Icon))
-                throw new IconException(Name);
-            writer.WriteLine("icon", Icon, ValueWrite.LeadingTabs);
-
-            if (Position <= 0)
-                throw new WrongPositionException(string.Format("Position must be greater than 0, mission: {0}", Name));
-            writer.WriteLine("position", Position.ToString(), ValueWrite.LeadingTabs);
-
-            RequiredMissions = new BindableCollection<MissionModel>(RequiredMissions.Where(mission => !String.IsNullOrWhiteSpace(mission.Name)));
-            if (RequiredMissions != null && RequiredMissions.Count > 0)
-            {
-                if (RequiredMissions.Count > 1)
-                {
-                    writer.WriteLine("required_missions = {", ValueWrite.LeadingTabs);
-                    foreach (MissionModel required in RequiredMissions)
-                    {
-                        writer.WriteLine(required.Name, ValueWrite.LeadingTabs);
-                    }
-                    writer.WriteLine("}", ValueWrite.LeadingTabs);
-                }
-
-                else
-                {
-                    writer.WriteLine("required_missions = { " + RequiredMissions[0].Name + " } ", ValueWrite.LeadingTabs);
-                }
-            }
-
-            if (ProvincesToHighlight != null)
-            {
-                ProvincesToHighlight.Write(writer);
-                writer.WriteLine();
-
-            }
-
-            if (Trigger == null)
-                Trigger = new GroupNodeModel() { Name = "trigger" };
-            Trigger.Write(writer);
-            writer.WriteLine();
-
-            if (Effect == null)
-                Effect = new GroupNodeModel() { Name = "effect" };
-            Effect.Write(writer);
+            Source = node;
+            Saved = new MissionSnapshot(Name, Position, Icon, RequiredMissionNames());
         }
 
-        private static bool IsRequirementLoopDFS(string startMission, HashSet<string> visisted, HashSet<string> currentPath, Dictionary<string, Tuple<MissionModel, bool>> missions)
+        private static bool IsRequirementLoopDFS(string startMission, HashSet<string> visited, HashSet<string> currentPath, Dictionary<string, MissionModel> missions)
         {
             // We're still on path including this mission, loop found
             if (currentPath.Contains(startMission)) { return true; }
 
             // Path of this mission was already checked on different path, skip
-            if (visisted.Contains(startMission)) { return false; }
+            if (visited.Contains(startMission)) { return false; }
 
             if (missions.ContainsKey(startMission))
             {
-               currentPath.Add(startMission);  
-               visisted.Add(startMission);
-                
+                currentPath.Add(startMission);
+                visited.Add(startMission);
 
-               MissionModel mission = missions[startMission].Item1;
+                MissionModel mission = missions[startMission];
 
-               foreach (MissionModel requirement in mission.RequiredMissions)
-               {
-                    if (IsRequirementLoopDFS(requirement.Name, visisted, currentPath, missions)) { return true; }
-               }
+                foreach (MissionModel requirement in mission.RequiredMissions)
+                {
+                    if (IsRequirementLoopDFS(requirement.Name, visited, currentPath, missions)) { return true; }
+                }
             }
 
             currentPath.Remove(startMission);
             return false;
         }
 
-        public static bool IsRequirementLoop(string missionName, Dictionary<string, Tuple<MissionModel, bool>> missions)
+        public static bool IsRequirementLoop(string missionName, Dictionary<string, MissionModel> missions)
         {
-            HashSet<string> visited = new HashSet<string>();
-            HashSet<string> currentPath = new HashSet<string>();
-
-
-            return IsRequirementLoopDFS(missionName, visited, currentPath, missions);
+            return IsRequirementLoopDFS(missionName, new HashSet<string>(), new HashSet<string>(), missions);
         }
     }
+
+    public record MissionSnapshot(string Name, int Position, string Icon, List<string> RequiredMissions);
 }

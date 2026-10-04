@@ -1,0 +1,273 @@
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using EMT.Helpers;
+using EMT.Models;
+using EMT.Helpers.Script;
+using Pfim;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+
+namespace EMT.Services
+{
+    public class GfxService : IGfxService
+    {
+        private const string _missionGfxPrefix = "gfx/interface/missions";
+        private const string _missionFrameGfx = "GFX_mission_icons_frame";
+        private const string _missionViewBackgroundGfx = "GFX_country_mission_view_bg";
+        private static readonly HashSet<string> SpriteTypes = new(StringComparer.OrdinalIgnoreCase) { "spriteType", "frameAnimatedSpriteType" };
+
+        private readonly Dictionary<string, GfxSprite> _missionGfx = [];
+        private readonly List<ColorKey> _textColors = [];
+        private readonly Dictionary<string, Bitmap?> _bitmapCache = [];
+        private readonly Dictionary<string, IReadOnlyList<Avalonia.Media.IImage>> _framesCache = [];
+        private Bitmap? _backgroundTile;
+
+        public IReadOnlyDictionary<string, GfxSprite> MissionGfx => _missionGfx;
+        public IReadOnlyList<ColorKey> TextColors => _textColors;
+
+        /// <summary>
+        /// Interface files that couldn't be read during last load, sprites defined in them are missing.
+        /// </summary>
+        public IReadOnlyList<string> LoadWarnings => _loadWarnings;
+        private readonly List<string> _loadWarnings = [];
+        public string? MissionFramePath { get; private set; }
+        public string? MissionViewBackgroundPath { get; private set; }
+
+        public void Load(string vanillaFolder, string modFolder)
+        {
+            _missionGfx.Clear();
+            _framesCache.Clear();
+            _textColors.Clear();
+            _loadWarnings.Clear();
+            MissionFramePath = null;
+            MissionViewBackgroundPath = null;
+            _backgroundTile = null;
+
+            // Mod first, so its definitions take precedence over vanilla ones
+            foreach (string root in new[] { modFolder, vanillaFolder })
+            {
+                LoadRoot(PathHelper.NormalizeFolder(root));
+            }
+        }
+
+        private void LoadRoot(string root)
+        {
+            string? interfaceFolder = PathHelper.ResolveCaseInsensitive(root, "interface");
+            if (interfaceFolder == null)
+                return;
+
+            var gfxFiles = Directory.EnumerateFiles(interfaceFolder, "*.gfx", new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                MatchCasing = MatchCasing.CaseInsensitive,
+            });
+
+            foreach (string gfxFile in gfxFiles)
+            {
+                string text = "";
+                try
+                {
+                    text = TextFile.ReadScript(gfxFile).Text;
+                    ScriptNode gfxFileData = ScriptParser.Parse(text);
+
+                    if (Path.GetFileName(gfxFile).Equals("core.gfx", StringComparison.OrdinalIgnoreCase) && _textColors.Count == 0)
+                    {
+                        LoadTextColors(gfxFileData);
+                    }
+
+                    foreach (ScriptNode sprite in Descendants(gfxFileData).Where(group => SpriteTypes.Contains(group.Name)))
+                    {
+                        string? name = Property(sprite, "name");
+                        string? textureFile = Property(sprite, "texturefile");
+                        if (name == null || textureFile == null || _missionGfx.ContainsKey(name))
+                            continue;
+
+                        string texture = PathHelper.NormalizeGamePath(textureFile);
+                        string texturePath = PathHelper.ResolveCaseInsensitive(root, texture) ?? Path.Combine(root, texture);
+
+                        if (texture.StartsWith(_missionGfxPrefix, StringComparison.OrdinalIgnoreCase))
+                            _missionGfx.Add(name, ReadSprite(sprite, name, texturePath));
+
+                        if (name.Equals(_missionFrameGfx) && MissionFramePath == null)
+                            MissionFramePath = texturePath;
+
+                        if (name.Equals(_missionViewBackgroundGfx) && MissionViewBackgroundPath == null)
+                            MissionViewBackgroundPath = texturePath;
+                    }
+                }
+                catch (ScriptParseException e)
+                {
+                    Log.Error(e, "Parsing gfx {GfxFile}", gfxFile);
+                    _loadWarnings.Add(ErrorText.ForScript(gfxFile, text, e));
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Loading gfx {GfxFile}", gfxFile);
+                    _loadWarnings.Add(ErrorText.ForFile(gfxFile, e));
+                }
+            }
+        }
+
+        private void LoadTextColors(ScriptNode gfxFileData)
+        {
+            var colors = gfxFileData.Child("bitmapfonts")?.Child("textcolors")?.Children;
+            if (colors == null)
+                return;
+
+            foreach (ScriptNode color in colors.Where(color => color.IsGroup && color.Name.Length > 0))
+            {
+                _textColors.Add(new ColorKey(color.Name[0], color.Children!.Select(rgb => rgb.Name).ToList()));
+            }
+        }
+
+        private static IEnumerable<ScriptNode> Descendants(ScriptNode group)
+        {
+            foreach (ScriptNode child in group.Children!.Where(child => child.IsGroup))
+            {
+                yield return child;
+                foreach (ScriptNode descendant in Descendants(child))
+                    yield return descendant;
+            }
+        }
+
+        private static string? Property(ScriptNode group, string name) =>
+            group.Children!.FirstOrDefault(node => !node.IsGroup && !node.IsBare && node.Name.Equals(name, StringComparison.OrdinalIgnoreCase))?.Value;
+
+        private static GfxSprite ReadSprite(ScriptNode sprite, string name, string texturePath)
+        {
+            int frames = int.TryParse(Property(sprite, "noOfFrames"), out int count) ? count : 1;
+            double fps = double.TryParse(Property(sprite, "animation_rate_fps"), System.Globalization.CultureInfo.InvariantCulture, out double rate) ? rate : 0;
+            double pause = double.TryParse(Property(sprite, "pause_on_loop"), System.Globalization.CultureInfo.InvariantCulture, out double seconds) ? seconds : 0;
+
+            return new GfxSprite(name, texturePath, Math.Max(frames, 1), fps, pause);
+        }
+
+        public GfxSprite? GetSprite(string? gfxName)
+        {
+            if (string.IsNullOrWhiteSpace(gfxName))
+                return null;
+
+            return _missionGfx.GetValueOrDefault(gfxName);
+        }
+
+        public Bitmap? GetGfxBitmap(string? gfxName)
+        {
+            return GetBitmap(GetSprite(gfxName)?.Path);
+        }
+
+        public Bitmap? GetMissionBackgroundTile()
+        {
+            if (_backgroundTile != null)
+                return _backgroundTile;
+
+            Bitmap? bitmap = GetBitmap(MissionViewBackgroundPath);
+            if (bitmap == null)
+                return null;
+
+            // Patterned middle of the mission window, without frame, header and the darker edges
+            int width = bitmap.PixelSize.Width, height = bitmap.PixelSize.Height;
+            var rect = new PixelRect((int)(width * 0.09), (int)(height * 0.275), (int)(width * 0.79), (int)(height * 0.56));
+
+            _backgroundTile = CopyRegion(bitmap, rect);
+            return _backgroundTile;
+        }
+
+        private static Bitmap CopyRegion(Bitmap source, PixelRect rect)
+        {
+            var copy = new WriteableBitmap(rect.Size, source.Dpi, PixelFormats.Bgra8888, AlphaFormat.Unpremul);
+            using (var buffer = copy.Lock())
+            {
+                source.CopyPixels(rect, buffer.Address, buffer.RowBytes * rect.Height, buffer.RowBytes);
+            }
+
+            return copy;
+        }
+
+        public IReadOnlyList<Avalonia.Media.IImage> GetFrames(string? gfxName)
+        {
+            GfxSprite? sprite = GetSprite(gfxName);
+            Bitmap? bitmap = GetBitmap(sprite?.Path);
+            if (sprite == null || bitmap == null)
+                return [];
+
+            if (sprite.Frames <= 1)
+                return [bitmap];
+
+            if (_framesCache.TryGetValue(sprite.Name, out var cached))
+                return cached;
+
+            // Frames are laid out left to right in one texture
+            int frameWidth = bitmap.PixelSize.Width / sprite.Frames;
+            List<Avalonia.Media.IImage> frames = [];
+            for (int i = 0; i < sprite.Frames && frameWidth > 0; i++)
+                frames.Add(new CroppedBitmap(bitmap, new PixelRect(i * frameWidth, 0, frameWidth, bitmap.PixelSize.Height)));
+
+            _framesCache[sprite.Name] = frames;
+            return frames;
+        }
+
+        public Bitmap? GetBitmap(string? filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                return null;
+
+            if (_bitmapCache.TryGetValue(filePath, out Bitmap? cached))
+                return cached;
+
+            Bitmap? bitmap = LoadDds(filePath);
+            _bitmapCache[filePath] = bitmap;
+            return bitmap;
+        }
+
+        private static Bitmap? LoadDds(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            try
+            {
+                using var image = Pfimage.FromFile(filePath);
+                GCHandle handle = GCHandle.Alloc(image.Data, GCHandleType.Pinned);
+                try
+                {
+                    return new Bitmap(PixelFormat(image), AlphaFormat.Unpremul, handle.AddrOfPinnedObject(),
+                        new PixelSize(image.Width, image.Height), new Vector(96, 96), image.Stride);
+                }
+                finally
+                {
+                    handle.Free();
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Loading picture {FilePath}", filePath);
+                return null;
+            }
+        }
+
+        private static PixelFormat PixelFormat(Pfim.IImage image)
+        {
+            return image.Format switch
+            {
+                ImageFormat.Rgb24 => PixelFormats.Bgr24,
+                ImageFormat.Rgba32 => PixelFormats.Bgra8888,
+                ImageFormat.Rgb8 => PixelFormats.Gray8,
+                ImageFormat.R5g5b5a1 => PixelFormats.Bgr555,
+                ImageFormat.R5g5b5 => PixelFormats.Bgr555,
+                ImageFormat.R5g6b5 => PixelFormats.Bgr565,
+                _ => throw new Exception($"Unable to convert {image.Format} to Avalonia PixelFormat"),
+            };
+        }
+
+        public IBrush? GetColorForKey(char key)
+        {
+            return _textColors.FirstOrDefault(color => color.Key == key)?.Brush;
+        }
+    }
+}

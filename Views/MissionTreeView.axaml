@@ -1,0 +1,9 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EMT.ViewModels"
+             x:DataType="vm:MissionTreeViewModel"
+             x:Class="EMT.Views.MissionTreeView">
+  <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#FF1E2A3A">
+    <Canvas x:Name="MainCanvas" Margin="8" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+  </ScrollViewer>
+</UserControl>

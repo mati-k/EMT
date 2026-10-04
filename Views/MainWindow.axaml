@@ -1,0 +1,83 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:EMT.ViewModels"
+        xmlns:model="using:EMT.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+        x:Class="EMT.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1400" Height="850"
+        Title="EU4 Mission Tool">
+
+  <Window.Styles>
+    <Style Selector="Menu">
+      <Setter Property="Background" Value="{DynamicResource MaterialPrimaryMidBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource MaterialPrimaryMidForegroundBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="model:InfoDialogData">
+      <StackPanel Spacing="12" MaxWidth="640">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <materialIcons:MaterialIcon Kind="AlertCircleOutline" Width="24" Height="24" Foreground="#FFC62828" IsVisible="{Binding IsError}"/>
+          <TextBlock Text="{Binding Title}" Classes="Headline6" TextWrapping="Wrap" VerticalAlignment="Center"/>
+        </StackPanel>
+        <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+        <Button Content="Ok" Width="120" HorizontalAlignment="Right"
+                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"/>
+      </StackPanel>
+    </DataTemplate>
+    <DataTemplate DataType="model:ConfirmDialogData">
+      <StackPanel Spacing="12" MaxWidth="640">
+        <TextBlock Text="{Binding Title}" Classes="Headline6" TextWrapping="Wrap"/>
+        <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+          <Button Content="Cancel" Classes="Flat"
+                  Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+                  CommandParameter="{x:False}"/>
+          <Button Content="{Binding ConfirmText}"
+                  Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+                  CommandParameter="{x:True}"/>
+        </StackPanel>
+      </StackPanel>
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+    <KeyBinding Gesture="Meta+S" Command="{Binding SaveCommand}" />
+  </Window.KeyBindings>
+
+  <dialogHostAvalonia:DialogHost Identifier="MainDialogHost" DialogMargin="16" dialogHostAvalonia:DialogHostStyle.CornerRadius="8">
+    <controls:SnackbarHost HostName="Root" SnackbarHorizontalAlignment="Center" SnackbarVerticalAlignment="Bottom">
+      <DockPanel>
+        <!-- Saving and colours only once files are loaded, backups are reachable from the start page too -->
+        <Menu DockPanel.Dock="Top">
+          <MenuItem Header="_File">
+            <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGesture="Ctrl+S"
+                      IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            <Separator IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            <MenuItem Header="Open _backups folder" Click="OpenBackups_Click"/>
+          </MenuItem>
+          <MenuItem x:Name="FancyTextMenu" Header="Fancy _Text" ToolTip.Tip="Text colours for titles and descriptions, click one to copy its code"
+                    IsVisible="{Binding Editor, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+        </Menu>
+
+        <Panel>
+          <TransitioningContentControl Content="{Binding CurrentPage}" Margin="16"/>
+          <Panel IsVisible="{Binding IsBusy}" Background="#80FFFFFF">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+              <ProgressBar IsIndeterminate="True" Width="240"/>
+              <TextBlock Text="Loading files..." HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Panel>
+        </Panel>
+      </DockPanel>
+    </controls:SnackbarHost>
+  </dialogHostAvalonia:DialogHost>
+</Window>

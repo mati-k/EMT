@@ -21,13 +21,16 @@ namespace EMT.Views
         private PointerPressedEventArgs? _pressedArgs;
         private Point _pressedPoint;
 
+        // Drag started by this tree is running, drops from elsewhere (e.g. files) are ignored
+        private bool _isDragging;
+
         public EditorView()
         {
             InitializeComponent();
 
             BranchTree.AddHandler(PointerPressedEvent, Tree_PointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
             BranchTree.AddHandler(PointerMovedEvent, Tree_PointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
-            BranchTree.AddHandler(PointerReleasedEvent, (_, _) => _pressedArgs = null, RoutingStrategies.Tunnel, handledEventsToo: true);
+            BranchTree.AddHandler(PointerReleasedEvent, Tree_PointerReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
             DragDrop.AddDragOverHandler(BranchTree, Tree_DragOver);
             DragDrop.AddDropHandler(BranchTree, Tree_Drop);
         }
@@ -69,6 +72,16 @@ namespace EMT.Views
             }
         }
 
+        private void Tree_PointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            // Click without dragging, nothing to remember
+            if (!_isDragging)
+            {
+                _pressedArgs = null;
+                _dragged = null;
+            }
+        }
+
         private async void Tree_PointerMoved(object? sender, PointerEventArgs e)
         {
             if (_pressedArgs == null)
@@ -83,8 +96,16 @@ namespace EMT.Views
 
             var data = new DataTransfer();
             data.Add(DataTransferItem.CreateText(_dragged?.ToString() ?? ""));
-            await DragDrop.DoDragDropAsync(pressedArgs, data, DragDropEffects.Move);
-            _dragged = null;
+            _isDragging = true;
+            try
+            {
+                await DragDrop.DoDragDropAsync(pressedArgs, data, DragDropEffects.Move);
+            }
+            finally
+            {
+                _isDragging = false;
+                _dragged = null;
+            }
         }
 
         private void Tree_DragOver(object? sender, DragEventArgs e)
@@ -104,7 +125,7 @@ namespace EMT.Views
         /// </summary>
         private System.Action? GetDropAction(DragEventArgs e)
         {
-            if (_dragged == null || e.Source is not Visual source)
+            if (!_isDragging || _dragged == null || e.Source is not Visual source)
                 return null;
 
             var item = source.FindAncestorOfType<TreeViewItem>(includeSelf: true);

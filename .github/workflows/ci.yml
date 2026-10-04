@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main, avalonia-port]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build EMT.sln -c Release
+
+      # Tests checking against game files are skipped, the game isn't installed on the runner
+      - name: Test
+        run: dotnet test --project EMT.Tests -c Release --no-build

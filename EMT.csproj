@@ -10,8 +10,25 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- Tests live in their own project inside this folder -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);EMT.Tests/**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);EMT.Tests/**;publish/**</DefaultItemExcludes>
   </PropertyGroup>
+
+  <!-- Publishing for a platform (dotnet publish -r win-x64 / linux-x64 / osx-x64 / osx-arm64)
+       gives a single executable that doesn't need .NET installed -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <!-- Native packages (SkiaSharp, HarfBuzz) ship ~100 MB of debug symbols, not needed in releases -->
+  <Target Name="RemoveSymbolsFromPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.3" />

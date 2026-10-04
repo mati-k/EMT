@@ -168,10 +168,14 @@ namespace EMT.Helpers
                 return null;
 
             Directory.CreateDirectory(backupFolder);
-            string backup = Path.Combine(backupFolder,
-                $"{Path.GetFileNameWithoutExtension(path)}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}{Path.GetExtension(path)}");
+            string name = $"{Path.GetFileNameWithoutExtension(path)}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
+            string backup = Path.Combine(backupFolder, name + Path.GetExtension(path));
 
-            File.Copy(path, backup, overwrite: true);
+            // Several saves within a second must not replace each other's backups
+            for (int i = 2; File.Exists(backup); i++)
+                backup = Path.Combine(backupFolder, $"{name}_{i}{Path.GetExtension(path)}");
+
+            File.Copy(path, backup);
 
             // Copy keeps read-only flag of the original, backups should stay removable
             File.SetAttributes(backup, File.GetAttributes(backup) & ~FileAttributes.ReadOnly);

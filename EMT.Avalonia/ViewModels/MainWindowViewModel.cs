@@ -32,6 +32,13 @@ namespace EMT.ViewModels
         [ObservableProperty]
         private bool _isBusy;
 
+        /// <summary>
+        /// Save in progress (including questions asked during it), saving again is blocked meanwhile.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private bool _isSaving;
+
         public ObservableCollection<ColorKey> FontColors { get; } = new();
 
         private ConfigData? _config;
@@ -106,9 +113,10 @@ namespace EMT.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         public async Task Save()
         {
-            if (Editor == null || _config == null)
+            if (Editor == null || _config == null || IsSaving)
                 return;
 
+            IsSaving = true;
             try
             {
                 List<string> changed = MissionFileHelper.ChangedOnDisk(_config, Editor.Loaded);
@@ -135,11 +143,15 @@ namespace EMT.ViewModels
                 Log.Error(e, "Saving");
                 await Dialogs.ShowError("Unexpected error when saving", e.Message);
             }
+            finally
+            {
+                IsSaving = false;
+            }
         }
 
         public bool CanSave()
         {
-            return Editor != null;
+            return Editor != null && !IsSaving;
         }
 
         [RelayCommand]

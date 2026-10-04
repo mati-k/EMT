@@ -91,6 +91,24 @@ namespace EMT.Tests
         }
 
         [Fact]
+        public void Save_TwiceQuickly_KeepsBothBackups()
+        {
+            var loaded = MissionFileHelper.Load(_config);
+            var mission = loaded.MissionFile.Branches[0].Missions[0];
+
+            mission.Icon = "icon_first";
+            Assert.Empty(MissionFileHelper.Save(_config, loaded, Backups));
+            mission.Icon = "icon_second";
+            Assert.Empty(MissionFileHelper.Save(_config, loaded, Backups));
+
+            // Original is still backed up even if both saves happened within the same second
+            var missionBackups = Directory.GetFiles(Backups, "missions_*.txt").Select(File.ReadAllText).ToList();
+            Assert.Equal(2, missionBackups.Count);
+            Assert.Contains(MissionText, missionBackups);
+            Assert.Contains(missionBackups, text => text.Contains("icon = icon_first"));
+        }
+
+        [Fact]
         public void Save_WithoutBackups_MakesNone()
         {
             var loaded = MissionFileHelper.Load(_config);

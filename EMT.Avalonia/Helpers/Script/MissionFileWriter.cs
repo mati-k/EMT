@@ -71,19 +71,18 @@ namespace EMT.Helpers.Script
 
         private static void Validate(MissionFileModel file)
         {
+            // Broken keys would make the file invalid for the game
+            List<string> nameProblems = ScriptNames.FileProblems(file);
+            if (nameProblems.Count > 0)
+                throw new InvalidNameException(nameProblems);
+
             foreach (MissionBranchModel branch in file.Branches)
             {
-                if (string.IsNullOrWhiteSpace(branch.Name))
-                    throw new BranchNameException();
-
                 if (branch.Slot <= 0 && (branch.Source == null || branch.Slot != branch.SavedSlot))
                     throw new WrongPositionException($"Slot must be greater than 0, branch: {branch.Name}");
 
                 foreach (MissionModel mission in branch.Missions)
                 {
-                    if (string.IsNullOrWhiteSpace(mission.Name))
-                        throw new MissionNameException(branch.Name);
-
                     bool isNew = mission.Saved == null;
                     if (string.IsNullOrWhiteSpace(mission.Icon) && (isNew || mission.Icon != mission.Saved!.Icon))
                         throw new IconException(mission.Name);

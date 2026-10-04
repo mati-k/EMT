@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using EMT.Helpers;
 using EMT.Models;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EMT.ViewModels
 {
@@ -41,10 +43,23 @@ namespace EMT.ViewModels
             };
         }
 
+        /// <summary>
+        /// Name not used yet: base, base_2, base_3...
+        /// </summary>
+        private static string UniqueName(string baseName, IEnumerable<string> used)
+        {
+            HashSet<string> taken = [.. used];
+            string name = baseName;
+            for (int i = 2; taken.Contains(name); i++)
+                name = $"{baseName}_{i}";
+
+            return name;
+        }
+
         [RelayCommand]
         public void AddBranch()
         {
-            var branch = new MissionBranchModel(MissionFile) { Name = "new_branch" };
+            var branch = new MissionBranchModel(MissionFile) { Name = UniqueName("new_branch", MissionFile.Branches.Select(other => other.Name)) };
             MissionFile.Branches.Add(branch);
             SelectedItem = branch;
         }
@@ -61,7 +76,7 @@ namespace EMT.ViewModels
 
         public void AddMission(MissionBranchModel branch)
         {
-            var mission = new MissionModel(branch) { Name = "new_mission" };
+            var mission = new MissionModel(branch) { Name = UniqueName("new_mission", MissionFile.Branches.SelectMany(other => other.Missions).Select(other => other.Name)) };
             branch.Missions.Add(mission);
             SelectedItem = mission;
         }

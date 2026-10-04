@@ -14,6 +14,11 @@
     <Style Selector="StackPanel.field">
       <Setter Property="Spacing" Value="2"/>
     </Style>
+    <Style Selector="TextBlock.error">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="#FFC62828"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
     <Style Selector="TextBlock.label">
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="Opacity" Value="0.7"/>
@@ -32,7 +37,7 @@
           <TextBlock Classes="section" Text="BRANCH"/>
           <Grid ColumnDefinitions="*,12,96">
             <StackPanel Classes="field">
-              <TextBlock Classes="label" Text="Key"/>
+              <TextBlock Classes="label" Text="Key (letters, numbers, _ and -)"/>
               <TextBox Classes="outline dense" Text="{Binding Branch.Name}"/>
             </StackPanel>
             <StackPanel Grid.Column="2" Classes="field">
@@ -40,6 +45,7 @@
               <TextBox Classes="outline dense" Text="{Binding Branch.Slot}"/>
             </StackPanel>
           </Grid>
+          <TextBlock Classes="error" Text="{Binding NameError}" IsVisible="{Binding NameError, Converter={x:Static ObjectConverters.IsNotNull}}"/>
           <CheckBox IsChecked="{Binding Branch.IsActive}" Content="Show in preview"/>
         </StackPanel>
       </controls:Card>

@@ -20,6 +20,11 @@
     <Style Selector="StackPanel.field">
       <Setter Property="Spacing" Value="2"/>
     </Style>
+    <Style Selector="TextBlock.error">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="#FFC62828"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
     <Style Selector="TextBlock.label">
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="Opacity" Value="0.7"/>
@@ -57,7 +62,7 @@
           <TextBlock Classes="section" Text="MISSION"/>
           <Grid ColumnDefinitions="*,12,96">
             <StackPanel Classes="field">
-              <TextBlock Classes="label" Text="Key"/>
+              <TextBlock Classes="label" Text="Key (letters, numbers, _ and -)"/>
               <TextBox Classes="outline dense" Text="{Binding Mission.Name}"/>
             </StackPanel>
             <StackPanel Grid.Column="2" Classes="field">
@@ -65,6 +70,7 @@
               <TextBox Classes="outline dense" Text="{Binding Mission.Position}"/>
             </StackPanel>
           </Grid>
+          <TextBlock Classes="error" Text="{Binding NameError}" IsVisible="{Binding NameError, Converter={x:Static ObjectConverters.IsNotNull}}"/>
           <StackPanel Classes="field">
             <TextBlock Classes="label" Text="Title"/>
             <TextBox Classes="outline dense" Text="{Binding Mission.Title}"/>
@@ -122,6 +128,8 @@
                            ItemsSource="{Binding OtherMissionNames}" Text="{Binding RequiredMissionInput}"
                            FilterMode="ContainsOrdinal" MinimumPrefixLength="1" MaxDropDownHeight="240"
                            KeyDown="RequiredInput_KeyDown" DropDownClosed="RequiredInput_DropDownClosed"/>
+          <TextBlock Classes="error" Text="{Binding RequiredMissionError}"
+                     IsVisible="{Binding RequiredMissionError, Converter={x:Static ObjectConverters.IsNotNull}}"/>
         </StackPanel>
       </controls:Card>
 

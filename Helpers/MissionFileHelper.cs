@@ -215,6 +215,10 @@ namespace EMT.Helpers
             string temporary = path + ".emt-tmp";
             try
             {
+                // Replacing through a temporary file would get around read-only on Linux and macOS
+                if (File.Exists(path) && File.GetAttributes(path).HasFlag(FileAttributes.ReadOnly))
+                    throw new UnauthorizedAccessException($"{path} is read-only");
+
                 using (FileStream stream = new FileStream(temporary, FileMode.Create, FileAccess.Write))
                 {
                     write(stream);
